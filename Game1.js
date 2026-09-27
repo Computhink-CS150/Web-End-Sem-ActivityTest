@@ -344,6 +344,7 @@ function updateEnemies() {
 
     enemy.healthBar.x = enemy.body.x;
     enemy.healthBar.y = enemy.body.y - 23;
+    enemy.healthFill.x = enemy.body.x - (28 - enemy.healthFill.width) / 2;
     enemy.healthFill.y = enemy.body.y - 23;
     player.overlaps(enemy.body, () => handleEnemyContact(enemy));
   }
