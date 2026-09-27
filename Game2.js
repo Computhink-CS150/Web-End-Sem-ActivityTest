@@ -242,13 +242,7 @@ function spawnHazard() {
     addHazard("missile", gameWidth + 100, random(110, gameHeight - 110), 88, 34);
   }
 
-  const coin = new Sprite(gameWidth + random(310, 440), random(100, gameHeight - 100), 23);
-  coin.collider = "none";
-  coin.visible = false;
-  coin.color = "#ffd166";
-  coin.stroke = "#fff0b8";
-  coin.strokeWeight = 2;
-  coins.push(coin);
+  spawnCoinFormation();
 
   if (random() < energyCellChance) {
     const cell = new Sprite(gameWidth + random(480, 620), random(100, gameHeight - 100), 23);
@@ -260,6 +254,38 @@ function spawnHazard() {
     energyCells.push(cell);
   }
   nextHazard = runFrames + floor(random(115, 150));
+}
+
+function spawnCoinFormation() {
+  const formation = random(["line", "triangle", "arc"]);
+  const startX = gameWidth + random(310, 440);
+  const centerY = random(150, gameHeight - 150);
+  let positions;
+
+  if (formation === "line") {
+    positions = Array.from({ length: 6 }, (_, index) => [index * 48, 0]);
+  } else if (formation === "triangle") {
+    positions = [
+      [0, 0],
+      [48, -28], [48, 28],
+      [96, -56], [96, 0], [96, 56]
+    ];
+  } else {
+    positions = [
+      [0, -66], [42, -39], [84, -18], [126, -6],
+      [168, -18], [210, -39], [252, -66]
+    ];
+  }
+
+  for (const [offsetX, offsetY] of positions) {
+    const coin = new Sprite(startX + offsetX, centerY + offsetY, 23);
+    coin.collider = "none";
+    coin.visible = false;
+    coin.color = "#ffd166";
+    coin.stroke = "#fff0b8";
+    coin.strokeWeight = 2;
+    coins.push(coin);
+  }
 }
 
 function addHazard(type, x, y, width, height, angle = 0) {
