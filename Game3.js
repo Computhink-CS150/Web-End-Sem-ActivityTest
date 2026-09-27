@@ -5,6 +5,9 @@ const statusPanel = document.getElementById("statusPanel");
 const statusTitle = document.getElementById("statusTitle");
 const statusMessage = document.getElementById("statusMessage");
 const statusButton = document.getElementById("statusButton");
+const statusKicker = document.getElementById("statusKicker");
+const overlayHint = document.getElementById("overlayHint");
+const upgradeChoices = document.getElementById("upgradeChoices");
 const scoreDisplay = document.getElementById("score");
 const highscoreDisplay = document.getElementById("highscore");
 const timeDisplay = document.getElementById("time");
@@ -12,8 +15,18 @@ const waveDisplay = document.getElementById("wave");
 const enemyCountDisplay = document.getElementById("enemyCount");
 const healthBar = document.getElementById("healthBar");
 const healthText = document.getElementById("healthText");
+const playerLevelDisplay = document.getElementById("playerLevel");
+const xpBar = document.getElementById("xpBar");
+const xpCount = document.getElementById("xpCount");
 const toast = document.getElementById("toast");
 const highscoreKey = "moonfall-highscore";
+const upgradeDefinitions = [
+  { id: "rapidCast", name: "Swift Casting", icon: "⌁", max: 5 },
+  { id: "spreadShot", name: "Fan of Souls", icon: "✣", max: 3 },
+  { id: "piercing", name: "Wraithpiercer", icon: "➶", max: 3 },
+  { id: "soulburst", name: "Soulburst", icon: "✺", max: 1 },
+  { id: "magnet", name: "Grave Magnet", icon: "♧", max: 3 }
+];
 
 const stars = Array.from({ length: 105 }, () => ({
   x: Math.random() * gameWidth,
@@ -31,12 +44,19 @@ let gameSurface;
 let player;
 let enemies = [];
 let projectiles = [];
+let xpOrbs = [];
 let particles = [];
 let running = false;
+let choosingUpgrade = false;
 let health = 100;
 let score = 0;
 let highscore = 0;
 let elapsed = 0;
+let playerLevel = 1;
+let xp = 0;
+let xpRequired = 8;
+let pendingLevelUps = 0;
+let upgrades = {};
 let lastFrameTime = 0;
 let lastShot = 0;
 let nextSpawn = 0;
@@ -117,10 +137,18 @@ function clearSprites(items) {
 function resetRun() {
   clearSprites(enemies);
   clearSprites(projectiles);
+  clearSprites(xpOrbs);
   if (player) player.remove();
   enemies = [];
   projectiles = [];
+  xpOrbs = [];
   particles = [];
+  choosingUpgrade = false;
+  playerLevel = 1;
+  xp = 0;
+  xpRequired = 8;
+  pendingLevelUps = 0;
+  upgrades = Object.fromEntries(upgradeDefinitions.map(upgrade => [upgrade.id, 0]));
   health = 100;
   score = 0;
   elapsed = 0;
@@ -139,9 +167,14 @@ function resetRun() {
 function showReady() {
   running = false;
   resetRun();
+  statusKicker.innerHTML = "<span>✦</span> A CURSE STIRS IN THE WOODS";
   statusTitle.innerHTML = "MOON<span>FALL</span>";
   statusMessage.textContent = "The Hollow is hungry. How long can you survive?";
   statusButton.innerHTML = "ENTER THE HOLLOW <span>↗</span>";
+  statusButton.hidden = false;
+  overlayHint.hidden = false;
+  upgradeChoices.hidden = true;
+  upgradeChoices.replaceChildren();
   statusPanel.classList.remove("hidden");
 }
 
@@ -165,6 +198,7 @@ function draw() {
     spawnEnemies(now);
     updateEnemies(delta, now);
     updateProjectiles(delta);
+    updateXpOrbs(delta);
     updateParticles(delta);
     updateHighscore();
 
