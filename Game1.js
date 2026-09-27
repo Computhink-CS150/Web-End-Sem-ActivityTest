@@ -567,7 +567,7 @@ function initializeAudio() {
 
 function playSound(type) {
   initializeAudio();
-  if (!audioContext || audioContext.state !== "running") return;
+  if (!audioContext || audioContext.state === "closed") return;
 
   const now = audioContext.currentTime;
   const notes = {
