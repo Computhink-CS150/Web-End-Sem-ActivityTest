@@ -142,7 +142,7 @@ function showReady() {
 
 function startGame(event) {
   resetGame();
-  if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+  if (event?.detail > 0 && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
     rememberPointerPosition(event);
   }
   running = true;
