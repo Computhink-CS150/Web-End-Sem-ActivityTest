@@ -30,7 +30,8 @@ let gameSurface;
 let player;
 let destinationX = worldWidth / 2;
 let destinationY = worldHeight / 2;
-let ignoreNextPointerMove = true;
+let lastPointerX = null;
+let lastPointerY = null;
 let cameraX = 0;
 let cameraY = 0;
 let enemies = [];
@@ -155,9 +156,21 @@ function updateCamera() {
   cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
 }
 
+function startGame(event) {
+  resetGame();
+  if (event.detail > 0 && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+    rememberPointerPosition(event);
+  }
+  running = true;
+  gameOver = false;
+  statusPanel.classList.add("hidden");
+}
+
 function updatePointerPosition(event) {
-  if (!running || ignoreNextPointerMove) {
-    ignoreNextPointerMove = false;
+  if (!running) return;
+
+  if (lastPointerX === null || lastPointerY === null) {
+    rememberPointerPosition(event);
     return;
   }
 
@@ -166,10 +179,17 @@ function updatePointerPosition(event) {
   const pointerY = constrain((event.clientY - bounds.top) * gameHeight / bounds.height, 0, gameHeight);
   destinationX = constrain(pointerX + cameraX - gameWidth / 2, player.radius, worldWidth - player.radius);
   destinationY = constrain(pointerY + cameraY - gameHeight / 2, player.radius, worldHeight - player.radius);
+  rememberPointerPosition(event);
+}
+
+function rememberPointerPosition(event) {
+  lastPointerX = event.clientX;
+  lastPointerY = event.clientY;
 }
 
 function resetPointerInput() {
-  ignoreNextPointerMove = true;
+  lastPointerX = null;
+  lastPointerY = null;
 }
 
 function draw() {
