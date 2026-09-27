@@ -16,6 +16,7 @@ let coins;
 let goal;
 let flag;
 let checkpointFlags = [];
+let levelSprites = [];
 let score = 0;
 let checkpointIndex = -1;
 let gameWon = false;
@@ -66,6 +67,8 @@ function setup() {
 }
 
 function buildLevel() {
+  levelSprites.forEach(sprite => sprite.remove());
+  levelSprites = [];
   terrain = new Group();
   terrain.collider = "static";
   terrain.color = "#985b3c";
@@ -94,6 +97,7 @@ function buildLevel() {
     coin.stroke = "#e99a42";
     coin.strokeWeight = 3;
     coins.add(coin);
+    levelSprites.push(coin);
   }
 
   goal = new Sprite(2595, 410, 54, 180);
@@ -108,6 +112,7 @@ function buildLevel() {
   flag.stroke = "#d44c64";
   flag.strokeWeight = 2;
 
+  levelSprites.push(goal, flag);
   checkpointFlags = checkpointPoints.map(x => {
     const pole = new Sprite(x, floorY - 48, 8, 96);
     pole.collider = "none";
@@ -119,22 +124,26 @@ function buildLevel() {
     pennant.color = "#63c99b";
     pennant.stroke = "#429a7c";
     pennant.strokeWeight = 2;
+    levelSprites.push(pole, pennant);
     return { x, pole, pennant };
   });
 }
 
 function createPlatform(x, y, width, height) {
   const platform = new Sprite(x, y + height / 2, width, height);
+  platform.collider = "static";
   platform.color = "#985b3c";
   platform.stroke = "#784632";
   platform.strokeWeight = 2;
 
   const grass = new Sprite(x, y + 2, width, 8);
+  grass.collider = "static";
   grass.color = "#74c86d";
   grass.stroke = "#4b9d59";
   grass.strokeWeight = 1;
   terrain.add(platform);
   terrain.add(grass);
+  levelSprites.push(platform, grass);
 }
 
 function resetPlayer() {
@@ -205,7 +214,6 @@ function respawnPlayer() {
 }
 
 function collectCoin(playerSprite, coin) {
-  if (coin.removed) return;
   coin.remove();
   score++;
   coinCount.textContent = `${String(score).padStart(2, "0")} / ${coinSpots.length}`;
@@ -234,7 +242,6 @@ function restartGame() {
   finishPanel.classList.add("hidden");
   checkpointStatus.textContent = "Checkpoints save your spot";
   coinCount.textContent = `00 / ${coinSpots.length}`;
-  coins.forEach(coin => coin.remove());
   buildLevel();
   resetPlayer();
   cameraX = viewWidth / 2;

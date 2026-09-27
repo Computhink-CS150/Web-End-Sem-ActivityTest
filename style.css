@@ -349,7 +349,7 @@ kbd {
   .level-chip { order: 3; justify-content: center; width: 100%; padding: 8px; }
   .score-card { min-width: 94px; justify-content: flex-end; padding-right: 2px; }
   .score-card strong { font-size: 15px; }
-  .game-stage { min-height: 290px; aspect-ratio: 1.28 / 1; }
+  .game-stage { min-height: 0; aspect-ratio: 16 / 10; }
   .stage-label { top: 10px; left: 10px; padding: 7px 8px; font-size: 7px; }
   .game-bar { min-height: 57px; gap: 8px; padding: 0 10px; }
   .controls-hint { gap: 5px; font-size: 7px; }
@@ -360,7 +360,7 @@ kbd {
 }
 
 @media (max-width: 520px) {
-  .game-stage { min-height: 310px; }
+  .game-stage { min-height: 0; }
   .mobile-controls {
     position: absolute;
     z-index: 3;
