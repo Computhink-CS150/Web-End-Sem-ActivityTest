@@ -421,15 +421,31 @@ function fireAtTarget(now) {
   const dx = target.sprite.x - player.x;
   const dy = target.sprite.y - player.y;
   const distance = Math.hypot(dx, dy) || 1;
-  const sprite = makeSprite(player.x + dx / distance * 22, player.y + dy / distance * 22, 9);
-  projectiles.push({
-    sprite,
-    vx: dx / distance * 555,
-    vy: dy / distance * 555,
-    life: 1.7,
-    angle: Math.atan2(dy, dx)
-  });
+  const baseAngle = Math.atan2(dy, dx);
+  const shotCount = 1 + upgrades.spreadShot * 2;
+  const spread = 0.14;
+  for (let index = 0; index < shotCount; index++) {
+    const angle = baseAngle + (index - (shotCount - 1) / 2) * spread;
+    const sprite = makeSprite(
+      player.x + Math.cos(angle) * 22,
+      player.y + Math.sin(angle) * 22,
+      9
+    );
+    projectiles.push({
+      sprite,
+      vx: Math.cos(angle) * 555,
+      vy: Math.sin(angle) * 555,
+      life: 1.7,
+      angle,
+      pierceRemaining: upgrades.piercing,
+      hitEnemies: new Set()
+    });
+  }
   burst(player.x + dx / distance * 20, player.y + dy / distance * 20, "#f3d08f", 3);
+}
+
+function fireInterval() {
+  return Math.max(220, 620 * Math.pow(0.88, upgrades.rapidCast));
 }
 
 function updateProjectiles(delta) {
@@ -439,19 +455,26 @@ function updateProjectiles(delta) {
     projectile.sprite.y += projectile.vy * delta;
     projectile.life -= delta;
 
-    let hit = false;
-    for (let enemyIndex = enemies.length - 1; enemyIndex >= 0; enemyIndex--) {
-      const enemy = enemies[enemyIndex];
+    let removeProjectile = false;
+    for (const enemy of [...enemies]) {
+      if (projectile.hitEnemies.has(enemy)) continue;
       if (Math.hypot(projectile.sprite.x - enemy.sprite.x, projectile.sprite.y - enemy.sprite.y) >
           (enemy.size + 9) * 0.5) continue;
-      enemy.health--;
+      projectile.hitEnemies.add(enemy);
+      damageEnemy(enemy, 1);
       burst(projectile.sprite.x, projectile.sprite.y, enemy.color, 5);
-      hit = true;
-      if (enemy.health <= 0) defeatEnemy(enemyIndex);
-      break;
+      if (upgrades.soulburst > 0) {
+        burst(projectile.sprite.x, projectile.sprite.y, "#d7a6ff", 15);
+        damageNearbyEnemies(projectile.sprite.x, projectile.sprite.y, 76, 1, enemy);
+      }
+      if (projectile.pierceRemaining > 0) projectile.pierceRemaining--;
+      else {
+        removeProjectile = true;
+        break;
+      }
     }
 
-    if (hit || projectile.life <= 0 ||
+    if (removeProjectile || projectile.life <= 0 ||
         projectile.sprite.x < -15 || projectile.sprite.x > gameWidth + 15 ||
         projectile.sprite.y < -15 || projectile.sprite.y > gameHeight + 15) {
       projectile.sprite.remove();
@@ -460,11 +483,136 @@ function updateProjectiles(delta) {
   }
 }
 
+function damageEnemy(enemy, amount) {
+  enemy.health -= amount;
+  if (enemy.health > 0) return;
+  const index = enemies.indexOf(enemy);
+  if (index !== -1) defeatEnemy(index);
+}
+
+function damageNearbyEnemies(x, y, radius, amount, excludedEnemy) {
+  for (const enemy of [...enemies]) {
+    if (enemy === excludedEnemy) continue;
+    if (Math.hypot(enemy.sprite.x - x, enemy.sprite.y - y) <= radius) {
+      damageEnemy(enemy, amount);
+    }
+  }
+}
+
 function defeatEnemy(index) {
   const [enemy] = enemies.splice(index, 1);
   score += enemy.points * currentWave();
   burst(enemy.sprite.x, enemy.sprite.y, enemy.color, 18);
+  spawnXpOrb(enemy.sprite.x, enemy.sprite.y, enemy.type === "brute" ? 4 : enemy.type === "shade" ? 2 : 1);
   enemy.sprite.remove();
+}
+
+function spawnXpOrb(x, y, value) {
+  xpOrbs.push({
+    sprite: makeSprite(x, y, 12),
+    value,
+    phase: Math.random() * Math.PI * 2
+  });
+}
+
+function updateXpOrbs(delta) {
+  const magnetRadius = 92 + upgrades.magnet * 68;
+  for (let index = xpOrbs.length - 1; index >= 0; index--) {
+    const orb = xpOrbs[index];
+    const dx = player.x - orb.sprite.x;
+    const dy = player.y - orb.sprite.y;
+    const distance = Math.hypot(dx, dy) || 1;
+    if (distance < magnetRadius) {
+      const speed = distance < 100 ? 360 : 240 + upgrades.magnet * 80;
+      orb.sprite.x += dx / distance * Math.min(speed * delta, distance);
+      orb.sprite.y += dy / distance * Math.min(speed * delta, distance);
+    }
+    if (distance > 26) continue;
+
+    xpOrbs.splice(index, 1);
+    orb.sprite.remove();
+    burst(orb.sprite.x, orb.sprite.y, "#bca0ff", 8);
+    gainXp(orb.value);
+    if (choosingUpgrade) break;
+  }
+}
+
+function gainXp(amount) {
+  xp += amount;
+  while (xp >= xpRequired) {
+    xp -= xpRequired;
+    playerLevel++;
+    xpRequired = 8 + (playerLevel - 1) * 5;
+    pendingLevelUps++;
+  }
+  updateHud();
+  if (pendingLevelUps > 0 && !choosingUpgrade) showUpgradeChoice();
+}
+
+function showUpgradeChoice() {
+  pendingLevelUps--;
+  running = false;
+  choosingUpgrade = true;
+  lastFrameTime = millis();
+  const available = upgradeDefinitions.filter(upgrade => upgrades[upgrade.id] < upgrade.max);
+  const choices = available.sort(() => Math.random() - 0.5).slice(0, 3);
+  statusKicker.innerHTML = "<span>✦</span> A NEW POWER AWAKENS";
+  statusTitle.innerHTML = "CHOOSE YOUR<br><span>BLESSING</span>";
+  statusMessage.textContent = `Level ${playerLevel} reached. Choose one upgrade to continue.`;
+  statusButton.hidden = true;
+  overlayHint.hidden = true;
+  upgradeChoices.hidden = false;
+  upgradeChoices.replaceChildren();
+
+  choices.forEach(upgrade => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "upgrade-choice";
+    const icon = document.createElement("span");
+    icon.className = "upgrade-icon";
+    icon.textContent = upgrade.icon;
+    const name = document.createElement("span");
+    name.className = "upgrade-name";
+    name.textContent = upgrade.name;
+    const description = document.createElement("span");
+    description.className = "upgrade-description";
+    description.textContent = describeUpgrade(upgrade);
+    button.append(icon, name, description);
+    button.addEventListener("click", () => chooseUpgrade(upgrade.id));
+    upgradeChoices.append(button);
+  });
+  statusPanel.classList.remove("hidden");
+}
+
+function describeUpgrade(upgrade) {
+  const level = upgrades[upgrade.id];
+  const descriptions = {
+    rapidCast: `Fire bolts ${Math.round((1 - Math.pow(0.88, level + 1)) * 100)}% faster. (${level + 1}/${upgrade.max})`,
+    spreadShot: `Fire ${3 + level * 2} bolts in a widening fan. (${level + 1}/${upgrade.max})`,
+    piercing: `Bolts pierce ${level + 1} additional wraith${level === 0 ? "" : "s"}. (${level + 1}/${upgrade.max})`,
+    soulburst: "Bolts burst on impact, damaging nearby wraiths.",
+    magnet: `Collect souls from much farther away. (${level + 1}/${upgrade.max})`
+  };
+  return descriptions[upgrade.id];
+}
+
+function chooseUpgrade(id) {
+  if (!choosingUpgrade || !Object.hasOwn(upgrades, id)) return;
+  const definition = upgradeDefinitions.find(upgrade => upgrade.id === id);
+  if (!definition || upgrades[id] >= definition.max) return;
+  upgrades[id]++;
+  choosingUpgrade = false;
+  upgradeChoices.hidden = true;
+  upgradeChoices.replaceChildren();
+  statusPanel.classList.add("hidden");
+  showToast(`${definition.name.toUpperCase()} — UPGRADE ${upgrades[id]}`);
+  updateHud();
+
+  if (pendingLevelUps > 0) showUpgradeChoice();
+  else {
+    running = true;
+    lastFrameTime = millis();
+  }
 }
 
 function updateParticles(delta) {
