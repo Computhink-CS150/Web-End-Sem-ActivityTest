@@ -53,8 +53,6 @@ function setup() {
   gameSurface = new Canvas(gameWidth, gameHeight);
   gameSurface.id = "gameCanvas";
   gameSurface.setAttribute("aria-label", "Moonfall. Move the mouse away from the center of the screen to travel in that direction. The camera follows your centered hero while magic auto-fires.");
-  gameSurface.addEventListener("pointermove", updatePointerPosition);
-  gameSurface.addEventListener("pointerleave", resetPointerPosition);
   arena.insertBefore(gameSurface, arena.firstChild);
   world.gravity.x = 0;
   world.gravity.y = 0;
@@ -152,13 +150,13 @@ function startGame() {
   statusPanel.classList.add("hidden");
 }
 
-function updatePointerPosition(event) {
-  const bounds = gameSurface.getBoundingClientRect();
-  pointerX = constrain((event.clientX - bounds.left) * gameWidth / bounds.width, 0, gameWidth);
-  pointerY = constrain((event.clientY - bounds.top) * gameHeight / bounds.height, 0, gameHeight);
+function mouseMoved() {
+  if (!running) return;
+  pointerX = constrain(mouseX, 0, gameWidth);
+  pointerY = constrain(mouseY, 0, gameHeight);
 }
 
-function resetPointerPosition() {
+function mouseOut() {
   pointerX = gameWidth / 2;
   pointerY = gameHeight / 2;
 }
