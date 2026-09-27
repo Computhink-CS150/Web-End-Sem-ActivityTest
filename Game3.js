@@ -168,10 +168,10 @@ function updatePointerPosition(event) {
   }
 
   const bounds = gameSurface.getBoundingClientRect();
-  const pointerX = constrain((event.clientX - bounds.left) * gameWidth / bounds.width, 0, gameWidth);
-  const pointerY = constrain((event.clientY - bounds.top) * gameHeight / bounds.height, 0, gameHeight);
-  destinationX = constrain(pointerX + cameraX - gameWidth / 2, player.radius, worldWidth - player.radius);
-  destinationY = constrain(pointerY + cameraY - gameHeight / 2, player.radius, worldHeight - player.radius);
+  const movementX = (event.clientX - lastPointerX) * gameWidth / bounds.width;
+  const movementY = (event.clientY - lastPointerY) * gameHeight / bounds.height;
+  destinationX = constrain(destinationX + movementX, player.radius, worldWidth - player.radius);
+  destinationY = constrain(destinationY + movementY, player.radius, worldHeight - player.radius);
   rememberPointerPosition(event);
 }
 
