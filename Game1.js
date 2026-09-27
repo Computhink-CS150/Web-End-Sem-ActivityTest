@@ -56,6 +56,7 @@ let invulnerableUntilFrame = 0;
 let facing = 1;
 let nextShotFrame = 0;
 let toastTimer;
+let audioContext;
 
 const coinCount = document.getElementById("coinCount");
 const finishPanel = document.getElementById("finishPanel");
@@ -83,6 +84,7 @@ function setup() {
   document.getElementById("resetButton").addEventListener("click", restartGame);
   document.getElementById("playAgain").addEventListener("click", restartGame);
   window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("pointerdown", initializeAudio);
   document.querySelectorAll(".touch-button").forEach(button => {
     const direction = button.dataset.move;
     button.addEventListener("pointerdown", event => {
@@ -238,11 +240,15 @@ function updatePlayer() {
   }
 
   const onGround = player.colliding(terrain);
-  if (jumpPressed && onGround) player.vel.y = -jumpSpeed;
+  if (jumpPressed && onGround) {
+    player.vel.y = -jumpSpeed;
+    playSound("jump");
+  }
   jumpWasPressed = wantsToJump;
 }
 
 function shoot() {
+  playSound("shoot");
   const bullet = new Sprite(player.x + facing * 21, player.y - 3, 18, 12);
   bullet.collider = "none";
   bullet.color = "#fff1a5";
@@ -356,11 +362,13 @@ function handleEnemyContact(enemy) {
   if (player.vel.y > 0 && player.y < enemy.body.y - 12) {
     defeatEnemy(enemy);
     player.vel.y = -jumpSpeed * 0.65;
+    playSound("stomp");
     showToast("NICE STOMP!");
     return;
   }
 
   invulnerableUntilFrame = frameCount + 75;
+  playSound("hurt");
   respawnPlayer();
 }
 
@@ -374,6 +382,7 @@ function defeatEnemy(enemy) {
     eye.remove();
     pupil.remove();
   });
+  playSound("defeat");
   showToast("ENEMY ZAPPED!");
 }
 
@@ -387,6 +396,7 @@ function damageEnemy(enemy) {
   if (enemy.health === 0) {
     defeatEnemy(enemy);
   } else {
+    playSound("hit");
     showToast(`${enemy.health} HIT${enemy.health === 1 ? "" : "S"} LEFT`);
   }
 }
@@ -396,6 +406,7 @@ function updateCheckpoints() {
       player.x > checkpointPoints[checkpointIndex + 1]) {
     checkpointIndex++;
     checkpointStatus.textContent = `Checkpoint ${checkpointIndex + 1} reached`;
+    playSound("checkpoint");
     showToast("CHECKPOINT SAVED!");
   }
 }
@@ -413,6 +424,7 @@ function collectCoin(playerSprite, coin) {
   coin.remove();
   score++;
   coinCount.textContent = `${String(score).padStart(2, "0")} / ${coinSpots.length}`;
+  playSound("coin");
   showToast("SUN COIN +1");
 }
 
@@ -425,6 +437,7 @@ function finishGame() {
   finishTitle.textContent = score === coinSpots.length ? "You found them all!" : "You made it!";
   finishMessage.textContent = `You collected ${score} of ${coinSpots.length} sun coins.`;
   finishPanel.classList.remove("hidden");
+  playSound("win");
 }
 
 function restartGame() {
@@ -525,6 +538,7 @@ function showToast(message) {
 }
 
 function handleKeyDown(event) {
+  initializeAudio();
   if (event.target instanceof HTMLButtonElement) return;
   if (["ArrowLeft", "ArrowRight", "ArrowUp", "Space"].includes(event.code)) event.preventDefault();
   if (event.key.toLowerCase() === "r") restartGame();
@@ -535,4 +549,53 @@ function setTouchDirection(direction, pressed) {
   if (direction === "right") touchRight = pressed;
   if (direction === "jump") touchJump = pressed;
   if (direction === "shoot") touchShoot = pressed;
+}
+
+function initializeAudio() {
+  if (!audioContext) {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+    audioContext = new AudioContextClass();
+  }
+
+  if (audioContext.state === "suspended") {
+    audioContext.resume().catch(error => {
+      console.warn("Game audio could not be resumed.", error);
+    });
+  }
+}
+
+function playSound(type) {
+  initializeAudio();
+  if (!audioContext || audioContext.state !== "running") return;
+
+  const now = audioContext.currentTime;
+  const notes = {
+    shoot: [[620, 0.07, "square", 0.035, 310]],
+    jump: [[300, 0.12, "triangle", 0.045, 520]],
+    coin: [[760, 0.08, "sine", 0.05, 980], [1040, 0.1, "sine", 0.04, 1380]],
+    hit: [[190, 0.09, "square", 0.035, 110]],
+    stomp: [[240, 0.1, "triangle", 0.05, 130]],
+    hurt: [[170, 0.19, "sawtooth", 0.035, 75]],
+    defeat: [[520, 0.1, "triangle", 0.045, 760], [760, 0.14, "sine", 0.04, 1040]],
+    checkpoint: [[550, 0.1, "sine", 0.04, 720], [740, 0.13, "sine", 0.04, 990]],
+    win: [[523, 0.12, "triangle", 0.045, 523], [659, 0.12, "triangle", 0.045, 659], [784, 0.22, "triangle", 0.05, 1046]]
+  }[type];
+
+  if (!notes) return;
+  notes.forEach(([frequency, duration, waveform, volume, endFrequency], index) => {
+    const start = now + index * 0.11;
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+    oscillator.type = waveform;
+    oscillator.frequency.setValueAtTime(frequency, start);
+    oscillator.frequency.exponentialRampToValueAtTime(endFrequency, start + duration);
+    gain.gain.setValueAtTime(0.0001, start);
+    gain.gain.exponentialRampToValueAtTime(volume, start + 0.012);
+    gain.gain.exponentialRampToValueAtTime(0.0001, start + duration);
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start(start);
+    oscillator.stop(start + duration);
+  });
 }
