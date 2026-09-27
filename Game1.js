@@ -2,6 +2,7 @@ const viewWidth = 960;
 const viewHeight = 540;
 const levelWidth = 2700;
 const floorY = 500;
+const playerMoveSpeed = 18;
 const spawnPoint = { x: 82, y: 448 };
 const checkpointPoints = [1050, 1880];
 const coinSpots = [
@@ -155,7 +156,7 @@ function resetPlayer() {
   player.strokeWeight = 3;
   player.rotationLock = true;
   player.bounciness = 0;
-  player.maxSpeed = 56;
+  player.maxSpeed = 22;
   player.drag = 0.88;
 }
 
@@ -184,9 +185,9 @@ function updatePlayer() {
   const jumpPressed = wantsToJump && !jumpWasPressed;
 
   if (movingLeft && !movingRight) {
-    player.vel.x = -36;
+    player.vel.x = -playerMoveSpeed;
   } else if (movingRight && !movingLeft) {
-    player.vel.x = 36;
+    player.vel.x = playerMoveSpeed;
   } else {
     player.vel.x *= 0.8;
   }
