@@ -147,6 +147,7 @@ function createPlatform(x, y, width, height) {
 }
 
 function resetPlayer() {
+  if (player) player.remove();
   player = new Sprite(spawnPoint.x, spawnPoint.y, 31, 44);
   player.collider = "dynamic";
   player.color = "#f57870";
