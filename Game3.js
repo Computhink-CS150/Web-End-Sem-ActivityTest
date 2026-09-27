@@ -28,8 +28,8 @@ const enemyKinds = [
 
 let gameSurface;
 let player;
-let pointerX = gameWidth / 2;
-let pointerY = gameHeight / 2;
+let destinationX = worldWidth / 2;
+let destinationY = worldHeight / 2;
 let cameraX = 0;
 let cameraY = 0;
 let enemies = [];
@@ -119,6 +119,8 @@ function resetGame() {
   player.visible = false;
   player.radius = 18;
   player.speed = 320;
+  destinationX = player.x;
+  destinationY = player.y;
   updateCamera();
   updateHud();
 }
@@ -146,14 +148,16 @@ function handleKeyDown(event) {
 }
 
 function updateCamera() {
-  cameraX = player.x;
-  cameraY = player.y;
+  cameraX = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
+  cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
 }
 
 function updatePointerPosition(event) {
   const bounds = gameSurface.getBoundingClientRect();
-  pointerX = (event.clientX - bounds.left) * gameWidth / bounds.width;
-  pointerY = (event.clientY - bounds.top) * gameHeight / bounds.height;
+  const pointerX = (event.clientX - bounds.left) * gameWidth / bounds.width;
+  const pointerY = (event.clientY - bounds.top) * gameHeight / bounds.height;
+  destinationX = constrain(pointerX + cameraX - gameWidth / 2, player.radius, worldWidth - player.radius);
+  destinationY = constrain(pointerY + cameraY - gameHeight / 2, player.radius, worldHeight - player.radius);
 }
 
 function draw() {
@@ -180,15 +184,16 @@ function updateGame() {
   fireCooldown -= deltaTime / 1000;
   spawnCooldown -= deltaTime / 1000;
 
-  const targetX = pointerX + cameraX - gameWidth / 2;
-  const targetY = pointerY + cameraY - gameHeight / 2;
-  const steerX = targetX - player.x;
-  const steerY = targetY - player.y;
+  const steerX = destinationX - player.x;
+  const steerY = destinationY - player.y;
   const steerDistance = Math.hypot(steerX, steerY);
-  if (steerDistance > 18) {
+  if (steerDistance > 3) {
     const step = min(steerDistance, player.speed * deltaTime / 1000);
-    player.x = constrain(player.x + steerX / steerDistance * step, 32, worldWidth - 32);
-    player.y = constrain(player.y + steerY / steerDistance * step, 32, worldHeight - 32);
+    player.x = constrain(player.x + steerX / steerDistance * step, player.radius, worldWidth - player.radius);
+    player.y = constrain(player.y + steerY / steerDistance * step, player.radius, worldHeight - player.radius);
+  } else {
+    player.x = destinationX;
+    player.y = destinationY;
   }
 
   if (spawnCooldown <= 0) spawnEnemy();
