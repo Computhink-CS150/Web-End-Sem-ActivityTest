@@ -140,11 +140,8 @@ function showReady() {
   statusPanel.classList.remove("hidden");
 }
 
-function startGame(event) {
+function startGame() {
   resetGame();
-  if (event?.detail > 0 && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
-    rememberPointerPosition(event);
-  }
   running = true;
   gameOver = false;
   statusPanel.classList.add("hidden");
@@ -161,6 +158,11 @@ function updateCamera() {
 }
 
 function updatePointerPosition(event) {
+  if (!running) {
+    rememberPointerPosition(event);
+    return;
+  }
+
   const bounds = gameSurface.getBoundingClientRect();
   if (lastPointerX === null || lastPointerY === null) {
     rememberPointerPosition(event);
