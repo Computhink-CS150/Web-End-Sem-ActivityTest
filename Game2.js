@@ -119,7 +119,7 @@ function handleKeyDown(event) {
   if (event.code !== "Space" && event.code !== "ArrowUp") return;
   event.preventDefault();
   if (running) thrusting = true;
-  else if (!gameOver && document.activeElement !== statusButton) startGame();
+  else if (document.activeElement !== statusButton) startGame();
 }
 
 function handleKeyUp(event) {

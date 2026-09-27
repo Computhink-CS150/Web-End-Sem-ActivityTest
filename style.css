@@ -65,6 +65,8 @@ button { font: 600 12px "Space Grotesk", sans-serif; cursor: pointer; border: 0;
 .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 .footer { display: flex; justify-content: space-between; color: #617b73; padding: 17px 3px; font-size: 10px; }
 .footer b { color: var(--accent); font-weight: 500; }
+.footer a { color: var(--teal); text-decoration: none; margin-right: 12px; }
+.footer a:hover { color: var(--ink); }
 kbd { color: var(--muted); border: 1px solid var(--line); padding: 3px 5px; border-radius: 3px; }
 @media (max-width: 650px) {
   .game-shell { width: calc(100% - 24px); padding-top: 20px; }
