@@ -51,7 +51,7 @@ let highscore = loadHighscore();
 function setup() {
   gameSurface = new Canvas(gameWidth, gameHeight);
   gameSurface.id = "gameCanvas";
-  gameSurface.setAttribute("aria-label", "Moonfall. Use WASD or the arrow keys to move through the forest. The camera follows your centered hero while magic auto-fires.");
+  gameSurface.setAttribute("aria-label", "Moonfall. Hold WASD or the arrow keys to move through the forest. The camera follows your hero while magic auto-fires.");
   arena.insertBefore(gameSurface, arena.firstChild);
   world.gravity.x = 0;
   world.gravity.y = 0;
@@ -418,8 +418,8 @@ function checkPlayerCollisions() {
     if (dist(player.x, player.y, enemy.x, enemy.y) < player.radius + enemy.radius - 4) {
       takeDamage(enemy.type === "brute" ? 22 : 16);
       const angle = atan2(player.y - enemy.y, player.x - enemy.x);
-      player.x = constrain(player.x + cos(angle) * 23, gameWidth / 2, worldWidth - gameWidth / 2);
-      player.y = constrain(player.y + sin(angle) * 23, gameHeight / 2, worldHeight - gameHeight / 2);
+      player.x = constrain(player.x + cos(angle) * 23, player.radius, worldWidth - player.radius);
+      player.y = constrain(player.y + sin(angle) * 23, player.radius, worldHeight - player.radius);
       break;
     }
   }
