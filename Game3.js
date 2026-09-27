@@ -189,13 +189,14 @@ function updateGame() {
 
   const steerX = (pointerX - gameWidth / 2) / (gameWidth / 2);
   const steerY = (pointerY - gameHeight / 2) / (gameHeight / 2);
-  const steerDistance = Math.hypot(steerX, steerY);
-  if (steerDistance > 0.06) {
-    const speed = player.speed * min(1, steerDistance);
-    const step = speed * deltaTime / 1000;
-    player.x = constrain(player.x + steerX / steerDistance * step, gameWidth / 2, worldWidth - gameWidth / 2);
-    player.y = constrain(player.y + steerY / steerDistance * step, gameHeight / 2, worldHeight - gameHeight / 2);
-  }
+  const stepX = Math.abs(steerX) > 0.06
+    ? Math.sign(steerX) * player.speed * min(1, Math.abs(steerX)) * deltaTime / 1000
+    : 0;
+  const stepY = Math.abs(steerY) > 0.06
+    ? Math.sign(steerY) * player.speed * min(1, Math.abs(steerY)) * deltaTime / 1000
+    : 0;
+  player.x = constrain(player.x + stepX, gameWidth / 2, worldWidth - gameWidth / 2);
+  player.y = constrain(player.y + stepY, gameHeight / 2, worldHeight - gameHeight / 2);
 
   if (spawnCooldown <= 0) spawnEnemy();
   updateEnemies();
