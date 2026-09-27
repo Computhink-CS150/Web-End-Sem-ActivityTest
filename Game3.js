@@ -30,6 +30,8 @@ let gameSurface;
 let player;
 let destinationX = worldWidth / 2;
 let destinationY = worldHeight / 2;
+let lastPointerX = null;
+let lastPointerY = null;
 let cameraX = 0;
 let cameraY = 0;
 let enemies = [];
@@ -53,7 +55,9 @@ function setup() {
   gameSurface = new Canvas(gameWidth, gameHeight);
   gameSurface.id = "gameCanvas";
   gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse away from the hero to steer through the forest. The camera follows your hero while magic auto-fires.");
+  gameSurface.addEventListener("pointerenter", rememberPointerPosition);
   gameSurface.addEventListener("pointermove", updatePointerPosition);
+  gameSurface.addEventListener("pointerleave", forgetPointerPosition);
   arena.insertBefore(gameSurface, arena.firstChild);
   world.gravity.x = 0;
   world.gravity.y = 0;
@@ -154,10 +158,26 @@ function updateCamera() {
 
 function updatePointerPosition(event) {
   const bounds = gameSurface.getBoundingClientRect();
-  const pointerX = (event.clientX - bounds.left) * gameWidth / bounds.width;
-  const pointerY = (event.clientY - bounds.top) * gameHeight / bounds.height;
-  destinationX = constrain(pointerX + cameraX - gameWidth / 2, player.radius, worldWidth - player.radius);
-  destinationY = constrain(pointerY + cameraY - gameHeight / 2, player.radius, worldHeight - player.radius);
+  if (lastPointerX === null || lastPointerY === null) {
+    rememberPointerPosition(event);
+    return;
+  }
+
+  const movementX = (event.clientX - lastPointerX) * gameWidth / bounds.width;
+  const movementY = (event.clientY - lastPointerY) * gameHeight / bounds.height;
+  destinationX = constrain(destinationX + movementX, player.radius, worldWidth - player.radius);
+  destinationY = constrain(destinationY + movementY, player.radius, worldHeight - player.radius);
+  rememberPointerPosition(event);
+}
+
+function rememberPointerPosition(event) {
+  lastPointerX = event.clientX;
+  lastPointerY = event.clientY;
+}
+
+function forgetPointerPosition() {
+  lastPointerX = null;
+  lastPointerY = null;
 }
 
 function draw() {
