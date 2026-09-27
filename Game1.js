@@ -9,7 +9,7 @@ const enemyHeight = 30;
 const shotCooldownFrames = 14;
 const projectileSpeed = 15;
 const spawnPoint = { x: 82, y: 448 };
-const checkpointPoints = [1050, 1880, 3750, 4580];
+const checkpointPoints = [1050, 1950, 3750, 4650];
 const firstSectionEnemies = [
   { min: 285, max: 405, y: floorY - enemyHeight / 2, speed: 0.8 },
   { min: 875, max: 980, y: floorY - enemyHeight / 2, speed: 0.9 },
@@ -390,6 +390,7 @@ function restartGame() {
   gameWon = false;
   jumpWasPressed = false;
   invulnerableUntilFrame = 0;
+  nextShotFrame = 0;
   touchLeft = false;
   touchRight = false;
   touchJump = false;
