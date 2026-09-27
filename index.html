@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#a8e5f1">
+  <title>Mallow Meadow — A Tiny Platform Adventure</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5play/3.26.5/planck.min.js"></script>
+  <script>window._p5play_gtagged = false;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5play/3.26.5/p5play.js"></script>
+</head>
+<body>
+  <main class="game-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Mallow Meadow home">
+        <span class="brand-mark" aria-hidden="true">✿</span>
+        <span>
+          <span class="eyebrow">A TINY PLATFORM ADVENTURE</span>
+          <span class="brand-name">Mallow Meadow</span>
+        </span>
+      </a>
+      <div class="level-chip"><span class="live-dot" aria-hidden="true"></span> MEADOW TRAIL <span class="level-number">01</span></div>
+      <div class="score-card" aria-live="polite">
+        <span class="score-icon" aria-hidden="true">✦</span>
+        <span><span class="score-label">SUN COINS</span><strong id="coinCount">00 / 12</strong></span>
+      </div>
+    </header>
+
+    <section class="game-card" aria-label="Mallow Meadow platform game">
+      <div class="game-stage" id="gameStage">
+        <div class="stage-label"><span class="stage-dot"></span> SUNNY SIDE OF THE HILL</div>
+        <div class="toast" id="toast" role="status" aria-live="polite"></div>
+        <div class="finish-panel hidden" id="finishPanel" role="dialog" aria-labelledby="finishTitle" aria-describedby="finishMessage">
+          <div class="finish-star" aria-hidden="true">✿</div>
+          <p class="panel-kicker" id="finishKicker">MEADOW MASTER</p>
+          <h2 id="finishTitle">You made it!</h2>
+          <p id="finishMessage">A perfect little adventure.</p>
+          <button class="play-again" id="playAgain" type="button">Play again <span aria-hidden="true">↗</span></button>
+        </div>
+        <div class="mobile-controls" aria-label="Touch controls">
+          <div class="move-buttons">
+            <button class="touch-button" type="button" data-move="left" aria-label="Move left">←</button>
+            <button class="touch-button" type="button" data-move="right" aria-label="Move right">→</button>
+          </div>
+          <button class="touch-button jump-button" type="button" data-move="jump" aria-label="Jump">JUMP <span aria-hidden="true">↑</span></button>
+        </div>
+      </div>
+      <div class="game-bar">
+        <div class="controls-hint">
+          <span class="hint-icon" aria-hidden="true">⌨</span>
+          <span><kbd>←</kbd> <kbd>→</kbd> MOVE <i>·</i> <kbd>SPACE</kbd> JUMP</span>
+        </div>
+        <span class="checkpoint-status" id="checkpointStatus"><span class="checkpoint-icon" aria-hidden="true">⚑</span> Checkpoints save your spot</span>
+        <button class="reset-button" id="resetButton" type="button" title="Restart level (R)">↻ <span>RESTART</span></button>
+      </div>
+    </section>
+    <footer class="footer">
+      <span>WANDER, HOP &amp; COLLECT A LITTLE SUNSHINE</span>
+      <span><span class="footer-flower">✿</span> MADE FOR DAYDREAMING</span>
+    </footer>
+  </main>
+  <script src="Game1.js"></script>
+</body>
+</html>
