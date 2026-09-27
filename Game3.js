@@ -95,7 +95,7 @@ function resetGame() {
   health = 100;
   invulnerable = 0;
   fireCooldown = 0;
-  spawnCooldown = 40;
+  spawnCooldown = 0.8;
   player = new Sprite(gameWidth / 2, gameHeight / 2, 30, 30);
   player.collider = "none";
   player.visible = false;
