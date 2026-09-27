@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#100e19">
+  <title>Moonfall — Arcane Survivor</title>
+  <link rel="stylesheet" href="game3.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.11.3/p5.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5play/3.26.5/planck.min.js"></script>
+  <script>window._p5play_gtagged = false;</script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5play/3.26.5/p5play.js"></script>
+</head>
+<body>
+  <main class="survivor-shell">
+    <header class="topbar">
+      <a class="brand" href="index.html" aria-label="Return to the arcade">
+        <span class="brand-mark" aria-hidden="true">☾</span>
+        <span><span class="eyebrow">THE NIGHTFALL ARCADE</span><strong>MOONFALL</strong></span>
+      </a>
+      <div class="game-name"><span class="live-dot"></span> ARCANE SURVIVOR <span class="separator">/</span> THE HOLLOW</div>
+      <div class="stats" aria-live="polite">
+        <div><span class="stat-label">SCORE</span><strong id="score">000000</strong></div>
+        <div><span class="stat-label">BEST</span><strong id="highscore">000000</strong></div>
+        <div><span class="stat-label">NIGHT</span><strong id="time">00:00</strong></div>
+      </div>
+    </header>
+
+    <section class="game-card" aria-label="Moonfall fantasy survival game">
+      <div class="arena" id="arena">
+        <div class="wave-banner" aria-live="polite"><span>WAVE</span><strong id="wave">I</strong><i></i><span id="enemyCount">0 WRAITHS</span></div>
+        <div class="health-wrap" aria-label="Health">
+          <span class="health-icon" aria-hidden="true">♥</span>
+          <div class="health-track"><div id="healthBar"></div></div>
+          <span id="healthText">100</span>
+        </div>
+        <div class="status-panel" id="statusPanel">
+          <p class="status-kicker"><span>✦</span> A CURSE STIRS IN THE WOODS</p>
+          <h1 id="statusTitle">MOON<span>FALL</span></h1>
+          <p id="statusMessage">The Hollow is hungry. How long can you survive?</p>
+          <button id="statusButton" class="start-button" type="button">ENTER THE HOLLOW <span>↗</span></button>
+          <div class="overlay-hint">MOVE WITH YOUR MOUSE <i>·</i> MAGIC FIRES ON ITS OWN</div>
+        </div>
+        <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      </div>
+      <div class="controls">
+        <div class="control-instruction"><span class="mouse-icon" aria-hidden="true">◉</span><span><strong>MOUSE TO MOVE</strong><span class="divider">/</span> AUTO-AIM &amp; AUTO-FIRE</span></div>
+        <div class="control-tip"><span class="tip-gem">✧</span> Keep moving. Don't let them close in.</div>
+        <button id="resetButton" class="reset-button" type="button" aria-label="Restart game">↻ <span>RESTART</span></button>
+      </div>
+    </section>
+    <footer class="footer">
+      <span>WRAITHS GROW STRONGER WITH EVERY WAVE. <b>HOLD OUT FOR A NEW HIGH SCORE.</b></span>
+      <span><a href="Game2.html">← NEON RUN</a><a href="index.html">SKYBOUND SIEGE</a></span>
+    </footer>
+  </main>
+  <script src="Game3.js"></script>
+</body>
+</html>
