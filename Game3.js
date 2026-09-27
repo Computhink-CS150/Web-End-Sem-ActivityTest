@@ -30,7 +30,6 @@ let gameSurface;
 let player;
 let cameraX = 0;
 let cameraY = 0;
-const pressedKeys = new Set();
 let enemies = [];
 let bolts = [];
 let enemyBolts = [];
@@ -58,8 +57,6 @@ function setup() {
   statusButton.addEventListener("click", startGame);
   document.getElementById("resetButton").addEventListener("click", showReady);
   window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("keyup", handleKeyUp);
-  window.addEventListener("blur", () => pressedKeys.clear());
   highscoreDisplay.textContent = formatScore(highscore);
   createScenery();
   resetGame();
@@ -136,15 +133,10 @@ function showReady() {
 function handleKeyDown(event) {
   if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"].includes(event.code)) {
     event.preventDefault();
-    pressedKeys.add(event.code);
     return;
   }
   if (event.code === "KeyR" && !event.repeat) showReady();
   if (event.code === "Enter" && !running) startGame();
-}
-
-function handleKeyUp(event) {
-  pressedKeys.delete(event.code);
 }
 
 function updateCamera() {
@@ -183,10 +175,10 @@ function updateGame() {
   fireCooldown -= deltaTime / 1000;
   spawnCooldown -= deltaTime / 1000;
 
-  const steerX = Number(pressedKeys.has("KeyD") || pressedKeys.has("ArrowRight")) -
-    Number(pressedKeys.has("KeyA") || pressedKeys.has("ArrowLeft"));
-  const steerY = Number(pressedKeys.has("KeyS") || pressedKeys.has("ArrowDown")) -
-    Number(pressedKeys.has("KeyW") || pressedKeys.has("ArrowUp"));
+  const steerX = Number(kb.pressing("d") || kb.pressing("right")) -
+    Number(kb.pressing("a") || kb.pressing("left"));
+  const steerY = Number(kb.pressing("s") || kb.pressing("down")) -
+    Number(kb.pressing("w") || kb.pressing("up"));
   const steerLength = Math.hypot(steerX, steerY);
   const moveScale = steerLength > 0 ? 1 / steerLength : 0;
   const stepX = steerX * moveScale * player.speed * deltaTime / 1000;
