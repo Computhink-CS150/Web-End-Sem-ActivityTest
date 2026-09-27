@@ -2,6 +2,7 @@ const gameWidth = 1200;
 const gameHeight = 654;
 const worldWidth = 4200;
 const worldHeight = 3000;
+const playerBoltRange = 450;
 const arena = document.getElementById("arena");
 const statusPanel = document.getElementById("statusPanel");
 const statusTitle = document.getElementById("statusTitle");
@@ -323,8 +324,8 @@ function autoFire() {
   }
   const angle = atan2(target.y - player.y, target.x - player.x);
   const speed = 9.2;
-  bolts.push({ x: player.x + cos(angle) * 18, y: player.y + sin(angle) * 18, vx: cos(angle) * speed, vy: sin(angle) * speed, radius: 5 });
-  fireCooldown = max(0.105, 0.31 - elapsed * 0.0011);
+  bolts.push({ x: player.x + cos(angle) * 18, y: player.y + sin(angle) * 18, vx: cos(angle) * speed, vy: sin(angle) * speed, radius: 5, distance: 0 });
+  fireCooldown = max(0.45, 0.75 - elapsed * 0.001);
   addParticles(player.x + cos(angle) * 20, player.y + sin(angle) * 20, "#c9a9ff", 3, 1.1);
 }
 
@@ -333,7 +334,9 @@ function updatePlayerBolts() {
     const bolt = bolts[i];
     bolt.x += bolt.vx;
     bolt.y += bolt.vy;
-    if (bolt.x < -20 || bolt.x > worldWidth + 20 || bolt.y < -20 || bolt.y > worldHeight + 20) {
+    bolt.distance += Math.hypot(bolt.vx, bolt.vy);
+    if (bolt.distance >= playerBoltRange ||
+        bolt.x < -20 || bolt.x > worldWidth + 20 || bolt.y < -20 || bolt.y > worldHeight + 20) {
       bolts.splice(i, 1);
       continue;
     }
@@ -410,8 +413,8 @@ function checkPlayerCollisions() {
     if (dist(player.x, player.y, enemy.x, enemy.y) < player.radius + enemy.radius - 4) {
       takeDamage(enemy.type === "brute" ? 22 : 16);
       const angle = atan2(player.y - enemy.y, player.x - enemy.x);
-      player.x = constrain(player.x + cos(angle) * 23, gameWidth / 2, worldWidth - gameWidth / 2);
-      player.y = constrain(player.y + sin(angle) * 23, gameHeight / 2, worldHeight - gameHeight / 2);
+      player.x = constrain(player.x + cos(angle) * 23, 32, worldWidth - 32);
+      player.y = constrain(player.y + sin(angle) * 23, 32, worldHeight - 32);
       break;
     }
   }
