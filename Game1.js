@@ -267,7 +267,7 @@ function updateProjectiles() {
       Math.abs(bullet.y - enemy.body.y) < 25
     );
     if (target) {
-      defeatEnemy(target);
+      damageEnemy(target);
       bullet.remove();
       bullet.active = false;
     } else if (bullet.distance > 620 || bullet.x < 0 || bullet.x > levelWidth) {
@@ -285,6 +285,17 @@ function createEnemy({ min, max, y, speed }) {
   body.stroke = "#69412f";
   body.strokeWeight = 3;
 
+  const healthBar = new Sprite(min, y - 22, 34, 7);
+  healthBar.collider = "none";
+  healthBar.color = "#fff8e7";
+  healthBar.stroke = "#69412f";
+  healthBar.strokeWeight = 1;
+  const healthFill = new Sprite(min, y - 22, 28, 3);
+  healthFill.collider = "none";
+  healthFill.color = "#74c86d";
+  healthFill.stroke = "#4b9d59";
+  healthFill.strokeWeight = 1;
+
   const eyes = [-1, 1].map(side => {
     const eye = new Sprite(min + side * 6, y - 3, 9, 11);
     eye.collider = "none";
@@ -298,8 +309,20 @@ function createEnemy({ min, max, y, speed }) {
     return { eye, pupil, side };
   });
 
-  levelSprites.push(body, ...eyes.flatMap(({ eye, pupil }) => [eye, pupil]));
-  return { body, eyes, min, max, speed, direction: 1, alive: true };
+  levelSprites.push(body, healthBar, healthFill, ...eyes.flatMap(({ eye, pupil }) => [eye, pupil]));
+  return {
+    body,
+    eyes,
+    healthBar,
+    healthFill,
+    health: 3,
+    maxHealth: 3,
+    min,
+    max,
+    speed,
+    direction: 1,
+    alive: true
+  };
 }
 
 function updateEnemies() {
@@ -319,6 +342,9 @@ function updateEnemies() {
       pupil.y = enemy.body.y - 2;
     }
 
+    enemy.healthBar.x = enemy.body.x;
+    enemy.healthBar.y = enemy.body.y - 23;
+    enemy.healthFill.y = enemy.body.y - 23;
     player.overlaps(enemy.body, () => handleEnemyContact(enemy));
   }
 }
@@ -341,11 +367,27 @@ function defeatEnemy(enemy) {
   if (!enemy.alive) return;
   enemy.alive = false;
   enemy.body.remove();
+  enemy.healthBar.remove();
+  enemy.healthFill.remove();
   enemy.eyes.forEach(({ eye, pupil }) => {
     eye.remove();
     pupil.remove();
   });
   showToast("ENEMY ZAPPED!");
+}
+
+function damageEnemy(enemy) {
+  if (!enemy.alive) return;
+  enemy.health = Math.max(0, enemy.health - 1);
+  const fillWidth = 28 * enemy.health / enemy.maxHealth;
+  enemy.healthFill.width = fillWidth;
+  enemy.healthFill.x = enemy.body.x - (28 - fillWidth) / 2;
+  enemy.healthFill.color = enemy.health === 1 ? "#f57870" : "#f0bb54";
+  if (enemy.health === 0) {
+    defeatEnemy(enemy);
+  } else {
+    showToast(`${enemy.health} HIT${enemy.health === 1 ? "" : "S"} LEFT`);
+  }
 }
 
 function updateCheckpoints() {
