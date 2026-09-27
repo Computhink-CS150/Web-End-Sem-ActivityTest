@@ -352,7 +352,7 @@ kbd {
   .game-stage { min-height: 0; aspect-ratio: 16 / 10; }
   .stage-label { top: 10px; left: 10px; padding: 7px 8px; font-size: 7px; }
   .game-bar { min-height: 57px; gap: 8px; padding: 0 10px; }
-  .controls-hint { gap: 5px; font-size: 7px; }
+  .controls-hint { gap: 5px; font-size: 6px; }
   .controls-hint kbd { padding: 3px; font-size: 7px; }
   .checkpoint-status { font-size: 7px; }
   .reset-button { padding: 7px 5px; font-size: 8px; }
@@ -372,7 +372,7 @@ kbd {
     align-items: flex-end;
     pointer-events: none;
   }
-  .move-buttons { display: flex; gap: 9px; }
+  .move-buttons, .action-buttons { display: flex; gap: 8px; }
   .touch-button {
     display: grid;
     width: 48px;
@@ -399,6 +399,15 @@ kbd {
     color: #aa7b37;
     font-size: 11px;
     letter-spacing: .06em;
+  }
+  .shoot-button {
+    width: 48px;
+    height: 48px;
+    align-self: flex-end;
+    background: rgba(255, 223, 170, .94);
+    color: #b16c43;
+    font-size: 16px;
+    font-style: italic;
   }
   .jump-button span { font-size: 19px; line-height: .8; }
   .hint-icon, .checkpoint-status { display: none; }
