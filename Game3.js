@@ -23,9 +23,10 @@ const highscoreKey = "moonfall-highscore";
 const upgradeDefinitions = [
   { id: "rapidCast", name: "Swift Casting", icon: "⌁", max: 5 },
   { id: "spreadShot", name: "Fan of Souls", icon: "✣", max: 3 },
-  { id: "piercing", name: "Wraithpiercer", icon: "➶", max: 3 },
+  { id: "piercing", name: "Wraithpiercer", icon: "➶", max: Infinity },
   { id: "soulburst", name: "Soulburst", icon: "✺", max: 1 },
-  { id: "magnet", name: "Grave Magnet", icon: "♧", max: 3 }
+  { id: "magnet", name: "Grave Magnet", icon: "♧", max: Infinity },
+  { id: "arcaneMight", name: "Eldritch Might", icon: "✧", max: Infinity }
 ];
 
 const stars = Array.from({ length: 105 }, () => ({
@@ -441,6 +442,7 @@ function fireAtTarget(now) {
       vy: Math.sin(angle) * 555,
       life: 1.7,
       angle,
+      damage: 1 + upgrades.arcaneMight,
       pierceRemaining: upgrades.piercing,
       hitEnemies: new Set()
     });
@@ -465,11 +467,11 @@ function updateProjectiles(delta) {
       if (Math.hypot(projectile.sprite.x - enemy.sprite.x, projectile.sprite.y - enemy.sprite.y) >
           (enemy.size + 9) * 0.5) continue;
       projectile.hitEnemies.add(enemy);
-      damageEnemy(enemy, 1);
+      damageEnemy(enemy, projectile.damage);
       burst(projectile.sprite.x, projectile.sprite.y, enemy.color, 5);
       if (upgrades.soulburst > 0) {
         burst(projectile.sprite.x, projectile.sprite.y, "#d7a6ff", 15);
-        damageNearbyEnemies(projectile.sprite.x, projectile.sprite.y, 76, 1, enemy);
+        damageNearbyEnemies(projectile.sprite.x, projectile.sprite.y, 76, projectile.damage, enemy);
       }
       if (projectile.pierceRemaining > 0) projectile.pierceRemaining--;
       else {
@@ -559,7 +561,12 @@ function showUpgradeChoice() {
   choosingUpgrade = true;
   lastFrameTime = millis();
   const available = upgradeDefinitions.filter(upgrade => upgrades[upgrade.id] < upgrade.max);
-  const choices = available.sort(() => Math.random() - 0.5).slice(0, 3);
+  const choices = available.slice();
+  for (let index = choices.length - 1; index > 0; index--) {
+    const swapIndex = Math.floor(Math.random() * (index + 1));
+    [choices[index], choices[swapIndex]] = [choices[swapIndex], choices[index]];
+  }
+  choices.length = Math.min(3, choices.length);
   statusKicker.innerHTML = "<span>✦</span> A NEW POWER AWAKENS";
   statusTitle.innerHTML = "CHOOSE YOUR<br><span>BLESSING</span>";
   statusMessage.textContent = `Level ${playerLevel} reached. Choose one upgrade to continue.`;
@@ -592,17 +599,24 @@ function showUpgradeChoice() {
 function describeUpgrade(upgrade) {
   const level = upgrades[upgrade.id];
   const descriptions = {
-    rapidCast: `Fire bolts ${Math.round((1 - Math.pow(0.88, level + 1)) * 100)}% faster. (${level + 1}/${upgrade.max})`,
-    spreadShot: `Fire ${3 + level * 2} bolts in a widening fan. (${level + 1}/${upgrade.max})`,
-    piercing: `Bolts pierce ${level + 1} additional wraith${level === 0 ? "" : "s"}. (${level + 1}/${upgrade.max})`,
+    rapidCast: `Fire bolts ${Math.round((1 - Math.pow(0.88, level + 1)) * 100)}% faster. ${upgradeRank(upgrade, level)}`,
+    spreadShot: `Fire ${3 + level * 2} bolts in a widening fan. ${upgradeRank(upgrade, level)}`,
+    piercing: `Bolts pierce ${level + 1} additional wraith${level === 0 ? "" : "s"}. ${upgradeRank(upgrade, level)}`,
     soulburst: "Bolts burst on impact, damaging nearby wraiths.",
-    magnet: `Collect souls from much farther away. (${level + 1}/${upgrade.max})`
+    magnet: `Collect souls from much farther away. ${upgradeRank(upgrade, level)}`,
+    arcaneMight: `Bolts deal ${level + 2} damage. ${upgradeRank(upgrade, level)}`
   };
   return descriptions[upgrade.id];
 }
 
+function upgradeRank(upgrade, currentLevel) {
+  return upgrade.max === Infinity
+    ? `Rank ${currentLevel + 1}`
+    : `(${currentLevel + 1}/${upgrade.max})`;
+}
+
 function chooseUpgrade(id) {
-  if (!choosingUpgrade || !Object.hasOwn(upgrades, id)) return;
+  if (!choosingUpgrade || !Object.prototype.hasOwnProperty.call(upgrades, id)) return;
   const definition = upgradeDefinitions.find(upgrade => upgrade.id === id);
   if (!definition || upgrades[id] >= definition.max) return;
   upgrades[id]++;
