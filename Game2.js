@@ -25,7 +25,7 @@ let buildings = [];
 let distance = 0;
 let cellsCollected = 0;
 let scrollSpeed = 5;
-let frameCount = 0;
+let runFrames = 0;
 let nextGate = 0;
 let thrusting = false;
 let running = false;
@@ -73,7 +73,7 @@ function resetFlight() {
   distance = 0;
   cellsCollected = 0;
   scrollSpeed = 5;
-  frameCount = 0;
+  runFrames = 0;
   nextGate = 88;
   thrusting = false;
   pilot = new Sprite(260, gameHeight * 0.48, 45, 39);
@@ -135,7 +135,7 @@ function draw() {
     return;
   }
 
-  frameCount++;
+  runFrames++;
   distance += scrollSpeed / 60;
   scrollSpeed = min(8.2, 5 + distance / 1150);
   pilot.velocityY += thrusting ? -0.43 : 0.24;
@@ -143,7 +143,7 @@ function draw() {
   pilot.y += pilot.velocityY;
   pilot.y = constrain(pilot.y, 30, gameHeight - 35);
 
-  if (frameCount >= nextGate) spawnGate();
+  if (runFrames >= nextGate) spawnGate();
   moveHazardsAndPickups();
   drawGateDetails();
   drawPickups();
@@ -151,7 +151,7 @@ function draw() {
   drawPilot();
   drawAltitude();
 
-  if (frameCount % 8 === 0) updateHud();
+  if (runFrames % 8 === 0) updateHud();
 }
 
 function drawSky() {
@@ -165,9 +165,9 @@ function drawSky() {
 
   noStroke();
   for (const star of stars) {
-    const shimmer = 0.45 + 0.45 * sin(frameCount * 0.045 + star.phase);
+    const shimmer = 0.45 + 0.45 * sin(runFrames * 0.045 + star.phase);
     fill(190, 216, 255, shimmer * 210);
-    circle((star.x - frameCount * star.depth * 0.45 + gameWidth * 3) % gameWidth, star.y, star.size);
+    circle((star.x - runFrames * star.depth * 0.45 + gameWidth * 3) % gameWidth, star.y, star.size);
   }
 
   drawingContext.save();
@@ -238,7 +238,7 @@ function spawnGate() {
   pickup.stroke = "#e1fffd";
   pickup.strokeWeight = 2;
   pickups.push(pickup);
-  nextGate = frameCount + floor(random(82, 108));
+  nextGate = runFrames + floor(random(82, 108));
 }
 
 function addGate(x, y, width, height) {
