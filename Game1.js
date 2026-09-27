@@ -1,28 +1,44 @@
 const viewWidth = 960;
 const viewHeight = 540;
-const levelWidth = 2700;
+const levelWidth = 5400;
+const sectionWidth = levelWidth / 2;
 const floorY = 500;
 const playerMoveSpeed = 11;
 const jumpSpeed = 40;
 const enemyHeight = 30;
+const shotCooldownFrames = 14;
+const projectileSpeed = 15;
 const spawnPoint = { x: 82, y: 448 };
-const checkpointPoints = [1050, 1880];
-const enemySpots = [
+const checkpointPoints = [1050, 1880, 3750, 4580];
+const firstSectionEnemies = [
   { min: 285, max: 405, y: floorY - enemyHeight / 2, speed: 0.8 },
   { min: 875, max: 980, y: floorY - enemyHeight / 2, speed: 0.9 },
   { min: 1490, max: 1615, y: floorY - enemyHeight / 2, speed: 0.75 },
   { min: 2040, max: 2160, y: floorY - enemyHeight / 2, speed: 0.85 }
 ];
-const coinSpots = [
+const enemySpots = [
+  ...firstSectionEnemies,
+  ...firstSectionEnemies.map(enemy => ({
+    ...enemy,
+    min: enemy.min + sectionWidth,
+    max: enemy.max + sectionWidth
+  }))
+];
+const firstSectionCoins = [
   [225, 435], [365, 435], [535, 350], [825, 320],
   [1050, 275], [1150, 275], [1435, 360], [1600, 292],
   [1770, 292], [2040, 350], [2250, 280], [2390, 280]
+];
+const coinSpots = [
+  ...firstSectionCoins,
+  ...firstSectionCoins.map(([x, y]) => [x + sectionWidth, y])
 ];
 
 let player;
 let terrain;
 let coins;
 let enemies = [];
+let projectiles = [];
 let goal;
 let flag;
 let checkpointFlags = [];
@@ -34,8 +50,11 @@ let cameraX = viewWidth / 2;
 let touchLeft = false;
 let touchRight = false;
 let touchJump = false;
+let touchShoot = false;
 let jumpWasPressed = false;
 let invulnerableUntilFrame = 0;
+let facing = 1;
+let nextShotFrame = 0;
 let toastTimer;
 
 const coinCount = document.getElementById("coinCount");
@@ -50,7 +69,7 @@ const gameStage = document.getElementById("gameStage");
 function setup() {
   const canvas = new Canvas(viewWidth, viewHeight);
   canvas.id = "gameCanvas";
-  canvas.setAttribute("aria-label", "Mallow Meadow game. Use the left and right arrow keys to move and space to jump.");
+  canvas.setAttribute("aria-label", "Mallow Meadow game. Use the left and right arrow keys to move, space to jump, and X to shoot.");
   canvas.setAttribute("tabindex", "0");
   gameStage.insertBefore(canvas, gameStage.firstChild);
 
@@ -98,7 +117,11 @@ function buildLevel() {
     [1595, 345, 185, 22],
     [2015, 405, 175, 22],
     [2225, 335, 210, 22]
-  ].forEach(([x, y, width, height]) => createPlatform(x + width / 2, y, width, height));
+  ].forEach(([x, y, width, height]) => {
+    for (const offset of [0, sectionWidth]) {
+      createPlatform(x + offset + width / 2, y, width, height);
+    }
+  });
 
   coins = new Group();
   for (const [x, y] of coinSpots) {
@@ -112,14 +135,15 @@ function buildLevel() {
   }
 
   enemies = enemySpots.map(createEnemy);
+  projectiles = [];
 
-  goal = new Sprite(2595, 410, 54, 180);
+  goal = new Sprite(levelWidth - 105, 410, 54, 180);
   goal.collider = "static";
   goal.color = "#f5f0dc";
   goal.stroke = "#7e6948";
   goal.strokeWeight = 3;
 
-  flag = new Sprite(2574, 352, 62, 35);
+  flag = new Sprite(levelWidth - 126, 352, 62, 35);
   flag.collider = "none";
   flag.color = "#ff6f78";
   flag.stroke = "#d44c64";
@@ -170,6 +194,7 @@ function resetPlayer() {
   player.bounciness = 0;
   player.maxSpeed = 14;
   player.drag = 0.88;
+  facing = 1;
 }
 
 function draw() {
@@ -183,6 +208,7 @@ function draw() {
     updatePlayer();
     player.collides(terrain);
     player.overlaps(coins, collectCoin);
+    updateProjectiles();
     updateEnemies();
     updateCheckpoints();
     if (player.overlaps(goal)) finishGame();
@@ -199,15 +225,54 @@ function updatePlayer() {
 
   if (movingLeft && !movingRight) {
     player.vel.x = -playerMoveSpeed;
+    facing = -1;
   } else if (movingRight && !movingLeft) {
     player.vel.x = playerMoveSpeed;
+    facing = 1;
   } else {
     player.vel.x *= 0.8;
+  }
+
+  if ((kb.pressing("x") || touchShoot) && frameCount >= nextShotFrame) {
+    shoot();
   }
 
   const onGround = player.colliding(terrain);
   if (jumpPressed && onGround) player.vel.y = -jumpSpeed;
   jumpWasPressed = wantsToJump;
+}
+
+function shoot() {
+  const bullet = new Sprite(player.x + facing * 21, player.y - 3, 18, 12);
+  bullet.collider = "none";
+  bullet.color = "#fff1a5";
+  bullet.stroke = "#e99a42";
+  bullet.strokeWeight = 3;
+  bullet.direction = facing;
+  bullet.distance = 0;
+  projectiles.push(bullet);
+  levelSprites.push(bullet);
+  nextShotFrame = frameCount + shotCooldownFrames;
+}
+
+function updateProjectiles() {
+  for (const bullet of projectiles) {
+    bullet.x += projectileSpeed * bullet.direction;
+    bullet.distance += projectileSpeed;
+
+    const target = enemies.find(enemy =>
+      enemy.alive &&
+      Math.abs(bullet.x - enemy.body.x) < 27 &&
+      Math.abs(bullet.y - enemy.body.y) < 25
+    );
+    if (target) {
+      defeatEnemy(target);
+      bullet.remove();
+    } else if (bullet.distance > 620 || bullet.x < 0 || bullet.x > levelWidth) {
+      bullet.remove();
+    }
+  }
+  projectiles = projectiles.filter(bullet => !bullet.removed);
 }
 
 function createEnemy({ min, max, y, speed }) {
@@ -259,12 +324,7 @@ function handleEnemyContact(enemy) {
   if (!enemy.alive || frameCount < invulnerableUntilFrame) return;
 
   if (player.vel.y > 0 && player.y < enemy.body.y - 12) {
-    enemy.alive = false;
-    enemy.body.remove();
-    enemy.eyes.forEach(({ eye, pupil }) => {
-      eye.remove();
-      pupil.remove();
-    });
+    defeatEnemy(enemy);
     player.vel.y = -jumpSpeed * 0.65;
     showToast("NICE STOMP!");
     return;
@@ -272,6 +332,17 @@ function handleEnemyContact(enemy) {
 
   invulnerableUntilFrame = frameCount + 75;
   respawnPlayer();
+}
+
+function defeatEnemy(enemy) {
+  if (!enemy.alive) return;
+  enemy.alive = false;
+  enemy.body.remove();
+  enemy.eyes.forEach(({ eye, pupil }) => {
+    eye.remove();
+    pupil.remove();
+  });
+  showToast("ENEMY ZAPPED!");
 }
 
 function updateCheckpoints() {
@@ -319,6 +390,8 @@ function restartGame() {
   touchLeft = false;
   touchRight = false;
   touchJump = false;
+  touchShoot = false;
+  projectiles = [];
   finishPanel.classList.add("hidden");
   checkpointStatus.textContent = "Checkpoints save your spot";
   coinCount.textContent = `00 / ${coinSpots.length}`;
@@ -414,4 +487,5 @@ function setTouchDirection(direction, pressed) {
   if (direction === "left") touchLeft = pressed;
   if (direction === "right") touchRight = pressed;
   if (direction === "jump") touchJump = pressed;
+  if (direction === "shoot") touchShoot = pressed;
 }
