@@ -485,7 +485,6 @@ function checkCollisions() {
     }
     return true;
   });
-
 }
 
 function distanceToSegment(px, py, x1, y1, x2, y2) {
