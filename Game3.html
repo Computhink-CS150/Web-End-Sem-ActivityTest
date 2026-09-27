@@ -34,12 +34,18 @@
           <div class="health-track"><div id="healthBar"></div></div>
           <span id="healthText">100</span>
         </div>
+        <div class="xp-wrap" aria-label="Experience">
+          <span class="xp-level">LV <strong id="playerLevel">1</strong></span>
+          <div class="xp-track"><div id="xpBar"></div></div>
+          <span class="xp-count" id="xpCount">0 / 8 XP</span>
+        </div>
         <div class="status-panel" id="statusPanel">
-          <p class="status-kicker"><span>✦</span> A CURSE STIRS IN THE WOODS</p>
+          <p class="status-kicker" id="statusKicker"><span>✦</span> A CURSE STIRS IN THE WOODS</p>
           <h1 id="statusTitle">MOON<span>FALL</span></h1>
           <p id="statusMessage">The Hollow is hungry. How long can you survive?</p>
+          <div class="upgrade-choices" id="upgradeChoices" hidden></div>
           <button id="statusButton" class="start-button" type="button">ENTER THE HOLLOW <span>↗</span></button>
-          <div class="overlay-hint">MOVE YOUR MOUSE TO STEER <i>·</i> GUIDE YOUR AIM</div>
+          <div class="overlay-hint" id="overlayHint">MOVE YOUR MOUSE TO STEER <i>·</i> GUIDE YOUR AIM</div>
         </div>
         <div id="toast" class="toast" role="status" aria-live="polite"></div>
       </div>
