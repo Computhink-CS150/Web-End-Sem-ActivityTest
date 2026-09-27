@@ -96,7 +96,7 @@ function saveHighscore() {
 }
 
 function updatePointer(event) {
-  const bounds = gameSurface.elt.getBoundingClientRect();
+  const bounds = gameSurface.getBoundingClientRect();
   pointerX = constrain((event.clientX - bounds.left) * gameWidth / bounds.width, 0, gameWidth);
   pointerY = constrain((event.clientY - bounds.top) * gameHeight / bounds.height, 0, gameHeight);
   event.preventDefault();
