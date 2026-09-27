@@ -1,5 +1,7 @@
 const gameWidth = 1200;
 const gameHeight = 630;
+const coinScore = 50;
+const energyCellChance = 0.2;
 const canvasWrap = document.getElementById("canvasWrap");
 const statusPanel = document.getElementById("statusPanel");
 const statusTitle = document.getElementById("statusTitle");
@@ -20,11 +22,14 @@ const stars = Array.from({ length: 110 }, () => ({
 let gameSurface;
 let pilot;
 let obstacles = [];
-let pickups = [];
+let energyCells = [];
+let coins = [];
 let buildings = [];
 let distance = 0;
 let cellsCollected = 0;
+let coinsCollected = 0;
 let scrollSpeed = 5;
+let speedMultiplier = 1;
 let runFrames = 0;
 let nextGate = 0;
 let thrusting = false;
@@ -66,13 +71,16 @@ function buildCity() {
 }
 
 function resetFlight() {
-  [...obstacles, ...pickups].forEach(item => item.remove());
+  [...obstacles, ...energyCells, ...coins].forEach(item => item.remove());
   if (pilot) pilot.remove();
   obstacles = [];
-  pickups = [];
+  energyCells = [];
+  coins = [];
   distance = 0;
   cellsCollected = 0;
+  coinsCollected = 0;
   scrollSpeed = 5;
+  speedMultiplier = 1;
   runFrames = 0;
   nextGate = 88;
   thrusting = false;
@@ -136,8 +144,9 @@ function draw() {
   }
 
   runFrames++;
+  const baseSpeed = min(8.2, 5 + distance / 1150);
+  scrollSpeed = baseSpeed * speedMultiplier;
   distance += scrollSpeed / 60;
-  scrollSpeed = min(8.2, 5 + distance / 1150);
   pilot.velocityY += thrusting ? -0.43 : 0.24;
   pilot.velocityY = constrain(pilot.velocityY, -6.1, 5.4);
   pilot.y += pilot.velocityY;
@@ -230,14 +239,23 @@ function spawnGate() {
   obstacles[obstacles.length - 2].gateTop = true;
   obstacles[obstacles.length - 1].gateBottom = true;
 
-  const pickupY = random(gapCenter - gapHeight * 0.3, gapCenter + gapHeight * 0.3);
-  const pickup = new Sprite(gateX + random(90, 160), pickupY, 23);
-  pickup.collider = "none";
-  pickup.visible = false;
-  pickup.color = "#68f4ed";
-  pickup.stroke = "#e1fffd";
-  pickup.strokeWeight = 2;
-  pickups.push(pickup);
+  const coin = new Sprite(gateX + random(90, 160), random(gapCenter - gapHeight * 0.3, gapCenter + gapHeight * 0.3), 23);
+  coin.collider = "none";
+  coin.visible = false;
+  coin.color = "#ffd166";
+  coin.stroke = "#fff0b8";
+  coin.strokeWeight = 2;
+  coins.push(coin);
+
+  if (random() < energyCellChance) {
+    const cell = new Sprite(gateX + random(210, 290), random(gapCenter - gapHeight * 0.3, gapCenter + gapHeight * 0.3), 23);
+    cell.collider = "none";
+    cell.visible = false;
+    cell.color = "#68f4ed";
+    cell.stroke = "#e1fffd";
+    cell.strokeWeight = 2;
+    energyCells.push(cell);
+  }
   nextGate = runFrames + floor(random(82, 108));
 }
 
@@ -253,9 +271,9 @@ function addGate(x, y, width, height) {
 
 function moveHazardsAndPickups() {
   for (const gate of obstacles) gate.x -= scrollSpeed;
-  for (const pickup of pickups) {
-    pickup.x -= scrollSpeed;
-    pickup.rotation += 3;
+  for (const item of [...energyCells, ...coins]) {
+    item.x -= scrollSpeed;
+    item.rotation += 3;
   }
 
   obstacles = obstacles.filter(gate => {
@@ -265,9 +283,16 @@ function moveHazardsAndPickups() {
     }
     return true;
   });
-  pickups = pickups.filter(pickup => {
-    if (pickup.x < -60) {
-      pickup.remove();
+  energyCells = energyCells.filter(cell => {
+    if (cell.x < -60) {
+      cell.remove();
+      return false;
+    }
+    return true;
+  });
+  coins = coins.filter(coin => {
+    if (coin.x < -60) {
+      coin.remove();
       return false;
     }
     return true;
@@ -292,14 +317,26 @@ function drawGateDetails() {
 }
 
 function drawPickups() {
-  for (const pickup of pickups) {
+  for (const cell of energyCells) {
     noFill();
     stroke(104, 244, 237, 70);
     strokeWeight(5);
-    circle(pickup.x, pickup.y, 34);
+    circle(cell.x, cell.y, 34);
     noStroke();
     fill("#ecffff");
-    circle(pickup.x, pickup.y, 6);
+    circle(cell.x, cell.y, 6);
+  }
+
+  for (const coin of coins) {
+    noStroke();
+    fill(255, 209, 102, 45);
+    circle(coin.x, coin.y, 35);
+    fill("#ffd166");
+    circle(coin.x, coin.y, 22);
+    fill("#fff0b8");
+    circle(coin.x, coin.y, 14);
+    fill("#c48726");
+    circle(coin.x, coin.y, 8);
   }
 }
 
@@ -315,11 +352,24 @@ function checkCollisions() {
     }
   }
 
-  pickups = pickups.filter(pickup => {
-    if (dist(px, py, pickup.x, pickup.y) < 34) {
-      pickup.remove();
+  energyCells = energyCells.filter(cell => {
+    if (dist(px, py, cell.x, cell.y) < 34) {
+      cell.remove();
       cellsCollected++;
-      showToast("+1 ENERGY CELL");
+      speedMultiplier *= 1.2;
+      scrollSpeed = min(8.2, 5 + distance / 1150) * speedMultiplier;
+      showToast("ENERGY CELL: SPEED +20%");
+      updateHud();
+      return false;
+    }
+    return true;
+  });
+
+  coins = coins.filter(coin => {
+    if (dist(px, py, coin.x, coin.y) < 34) {
+      coin.remove();
+      coinsCollected++;
+      showToast(`+${coinScore} POINTS`);
       updateHud();
       return false;
     }
@@ -383,14 +433,18 @@ function endFlight() {
   running = false;
   thrusting = false;
   statusTitle.innerHTML = "FLIGHT<br><span>ENDED</span>";
-  statusMessage.innerHTML = `You scored ${floor(distance) + cellsCollected * 50} points and found ${cellsCollected} energy cell${cellsCollected === 1 ? "" : "s"}.<br>Ready to beat your record?`;
+  statusMessage.innerHTML = `You scored ${currentScore()} points, collected ${coinsCollected} coin${coinsCollected === 1 ? "" : "s"} and found ${cellsCollected} energy cell${cellsCollected === 1 ? "" : "s"}.<br>Ready to beat your record?`;
   statusButton.innerHTML = 'FLY AGAIN <span>↗</span>';
   statusPanel.classList.remove("hidden");
 }
 
 function updateHud() {
-  scoreDisplay.textContent = String(floor(distance) + cellsCollected * 50).padStart(5, "0");
+  scoreDisplay.textContent = String(currentScore()).padStart(5, "0");
   cellDisplay.textContent = String(cellsCollected).padStart(2, "0");
+}
+
+function currentScore() {
+  return floor(distance) + coinsCollected * coinScore;
 }
 
 function showToast(message) {
