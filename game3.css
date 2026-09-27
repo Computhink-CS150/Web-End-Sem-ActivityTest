@@ -68,6 +68,9 @@ body::before {
 .status-kicker span { color: #f4c98f; }
 .status-panel h1 { margin: 12px 0 7px; font-size: clamp(48px, 8vw, 80px); letter-spacing: -.08em; line-height: .95; }
 .status-panel h1 span { color: var(--violet); }
+.status-panel.upgrade-mode { padding: 16px; }
+.status-panel.upgrade-mode h1 { margin: 6px 0; font-size: clamp(38px, 5vw, 54px); }
+.status-panel.upgrade-mode p:not(.status-kicker) { margin-bottom: 12px; }
 .status-panel p:not(.status-kicker) { margin: 0 auto 23px; color: #c3bdcc; font-size: 14px; }
 .start-button { padding: 13px 21px; color: #21172e; background: var(--violet); border-radius: 6px; font: 700 12px "Space Grotesk", sans-serif; cursor: pointer; border: 0; transition: transform .18s, background .18s; }
 .start-button:hover { transform: translateY(-2px); background: #d0bdff; }
@@ -112,6 +115,8 @@ body::before {
   .control-instruction { gap: 5px; font-size: 8px; }
   .divider { padding: 0 4px; }
   .control-tip { display: none; }
+  .status-panel.upgrade-mode { padding: 10px; }
+  .status-panel.upgrade-mode h1 { font-size: 36px; }
   .upgrade-choices { grid-template-columns: 1fr; width: min(270px, 90%); max-height: 46vh; overflow-y: auto; }
   .upgrade-choice { min-height: 0; padding: 10px 12px; }
   .upgrade-icon { display: inline-block; margin: 0 8px 0 0; vertical-align: middle; }
