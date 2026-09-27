@@ -82,6 +82,8 @@ function saveHighscore(value) {
 }
 
 function resetGame() {
+  enemies.forEach(enemy => enemy.sprite.remove());
+  if (player && typeof player.remove === "function") player.remove();
   enemies = [];
   bolts = [];
   enemyBolts = [];
@@ -94,7 +96,11 @@ function resetGame() {
   invulnerable = 0;
   fireCooldown = 0;
   spawnCooldown = 40;
-  player = { x: gameWidth / 2, y: gameHeight / 2, target: { x: gameWidth / 2, y: gameHeight / 2 }, radius: 18 };
+  player = new Sprite(gameWidth / 2, gameHeight / 2, 30, 30);
+  player.collider = "none";
+  player.visible = false;
+  player.target = { x: gameWidth / 2, y: gameHeight / 2 };
+  player.radius = 18;
   updateHud();
 }
 
@@ -223,7 +229,11 @@ function spawnEnemy() {
   if (wave >= 3 && roll < 0.13) kind = enemyKinds[2];
   else if (wave >= 2 && roll < 0.38) kind = enemyKinds[1];
   const scale = min(1.8, 1 + max(0, wave - 1) * 0.12);
+  const sprite = new Sprite(x, y, kind.radius * 2, kind.radius * 2);
+  sprite.collider = "none";
+  sprite.visible = false;
   enemies.push({
+    sprite,
     x, y, radius: kind.radius, health: kind.health + floor((wave - 1) / 4),
     maxHealth: kind.health + floor((wave - 1) / 4), speed: kind.speed * scale,
     score: kind.score, color: kind.color, type: kind.name, phase: random(TWO_PI),
@@ -239,6 +249,8 @@ function updateEnemies() {
     const angle = atan2(player.y - enemy.y, player.x - enemy.x);
     enemy.x += cos(angle) * enemy.speed;
     enemy.y += sin(angle) * enemy.speed;
+    enemy.sprite.x = enemy.x;
+    enemy.sprite.y = enemy.y;
     enemy.phase += 0.065;
     if (enemy.type === "brute") {
       enemy.shotCooldown -= deltaTime / 1000;
@@ -291,6 +303,7 @@ function updatePlayerBolts() {
 
 function defeatEnemy(index) {
   const [enemy] = enemies.splice(index, 1);
+  enemy.sprite.remove();
   kills++;
   score += enemy.score;
   if (random() < 0.24) gems.push({ x: enemy.x, y: enemy.y, phase: random(TWO_PI) });
