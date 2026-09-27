@@ -51,7 +51,7 @@ let highscore = loadHighscore();
 function setup() {
   gameSurface = new Canvas(gameWidth, gameHeight);
   gameSurface.id = "gameCanvas";
-  gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse away from the hero to steer through the forest. The camera follows your hero while magic auto-fires.");
+  gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse away from the hero or use the left and right arrow keys to steer through the forest. The camera follows your hero while magic auto-fires.");
   gameSurface.addEventListener("pointermove", updatePointerPosition);
   arena.insertBefore(gameSurface, arena.firstChild);
   world.gravity.x = 0;
@@ -184,10 +184,16 @@ function updateGame() {
   const steerX = pointerX - playerScreenX;
   const steerY = pointerY - playerScreenY;
   const steerDistance = Math.hypot(steerX, steerY);
+  const keyboardDirection = (kb.pressing("right") || kb.pressing("d") ? 1 : 0) -
+    (kb.pressing("left") || kb.pressing("a") ? 1 : 0);
+  const step = player.speed * deltaTime / 1000;
+  if (keyboardDirection !== 0) {
+    player.x = constrain(player.x + keyboardDirection * step, gameWidth / 2, worldWidth - gameWidth / 2);
+  } else if (steerDistance > 18) {
+    player.x = constrain(player.x + steerX / steerDistance * min(steerDistance, step), gameWidth / 2, worldWidth - gameWidth / 2);
+  }
   if (steerDistance > 18) {
-    const step = min(steerDistance, player.speed * deltaTime / 1000);
-    player.x = constrain(player.x + steerX / steerDistance * step, gameWidth / 2, worldWidth - gameWidth / 2);
-    player.y = constrain(player.y + steerY / steerDistance * step, gameHeight / 2, worldHeight - gameHeight / 2);
+    player.y = constrain(player.y + steerY / steerDistance * min(steerDistance, step), gameHeight / 2, worldHeight - gameHeight / 2);
   }
 
   if (spawnCooldown <= 0) spawnEnemy();
