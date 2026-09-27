@@ -139,13 +139,6 @@ function showReady() {
   statusPanel.classList.remove("hidden");
 }
 
-function startGame() {
-  resetGame();
-  running = true;
-  gameOver = false;
-  statusPanel.classList.add("hidden");
-}
-
 function handleKeyDown(event) {
   if (event.code === "KeyR") showReady();
   if (event.code === "Enter" && !running) startGame();
@@ -158,7 +151,7 @@ function updateCamera() {
 
 function startGame(event) {
   resetGame();
-  if (event.detail > 0 && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+  if (event?.detail > 0 && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
     rememberPointerPosition(event);
   }
   running = true;
