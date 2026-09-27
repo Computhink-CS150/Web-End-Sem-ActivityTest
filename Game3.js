@@ -175,6 +175,7 @@ function showReady() {
   overlayHint.hidden = false;
   upgradeChoices.hidden = true;
   upgradeChoices.replaceChildren();
+  statusPanel.classList.remove("upgrade-mode");
   statusPanel.classList.remove("hidden");
 }
 
@@ -566,6 +567,7 @@ function showUpgradeChoice() {
   overlayHint.hidden = true;
   upgradeChoices.hidden = false;
   upgradeChoices.replaceChildren();
+  statusPanel.classList.add("upgrade-mode");
 
   choices.forEach(upgrade => {
     const button = document.createElement("button");
@@ -607,6 +609,7 @@ function chooseUpgrade(id) {
   choosingUpgrade = false;
   upgradeChoices.hidden = true;
   upgradeChoices.replaceChildren();
+  statusPanel.classList.remove("upgrade-mode");
   statusPanel.classList.add("hidden");
   showToast(`${definition.name.toUpperCase()} — UPGRADE ${upgrades[id]}`);
   updateHud();
@@ -703,6 +706,7 @@ function endGame() {
   pendingLevelUps = 0;
   upgradeChoices.hidden = true;
   upgradeChoices.replaceChildren();
+  statusPanel.classList.remove("upgrade-mode");
   updateHighscore();
   updateHud();
   statusKicker.innerHTML = "<span>✦</span> THE HOLLOW CLAIMS ANOTHER";
