@@ -24,7 +24,7 @@
       <div class="level-chip"><span class="live-dot" aria-hidden="true"></span> MEADOW TRAIL <span class="level-number">01</span></div>
       <div class="score-card" aria-live="polite">
         <span class="score-icon" aria-hidden="true">✦</span>
-        <span><span class="score-label">SUN COINS</span><strong id="coinCount">00 / 12</strong></span>
+        <span><span class="score-label">SUN COINS</span><strong id="coinCount">00 / 24</strong></span>
       </div>
     </header>
 
@@ -44,13 +44,16 @@
             <button class="touch-button" type="button" data-move="left" aria-label="Move left">←</button>
             <button class="touch-button" type="button" data-move="right" aria-label="Move right">→</button>
           </div>
-          <button class="touch-button jump-button" type="button" data-move="jump" aria-label="Jump">JUMP <span aria-hidden="true">↑</span></button>
+          <div class="action-buttons">
+            <button class="touch-button shoot-button" type="button" data-move="shoot" aria-label="Shoot">B</button>
+            <button class="touch-button jump-button" type="button" data-move="jump" aria-label="Jump">JUMP <span aria-hidden="true">↑</span></button>
+          </div>
         </div>
       </div>
       <div class="game-bar">
         <div class="controls-hint">
           <span class="hint-icon" aria-hidden="true">⌨</span>
-          <span><kbd>←</kbd> <kbd>→</kbd> MOVE <i>·</i> <kbd>SPACE</kbd> JUMP</span>
+          <span><kbd>←</kbd> <kbd>→</kbd> MOVE <i>·</i> <kbd>SPACE</kbd> JUMP <i>·</i> <kbd>X</kbd> SHOOT</span>
         </div>
         <span class="checkpoint-status" id="checkpointStatus"><span class="checkpoint-icon" aria-hidden="true">⚑</span> Checkpoints save your spot</span>
         <button class="reset-button" id="resetButton" type="button" title="Restart level (R)">↻ <span>RESTART</span></button>

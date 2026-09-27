@@ -250,6 +250,7 @@ function shoot() {
   bullet.strokeWeight = 3;
   bullet.direction = facing;
   bullet.distance = 0;
+  bullet.active = true;
   projectiles.push(bullet);
   levelSprites.push(bullet);
   nextShotFrame = frameCount + shotCooldownFrames;
@@ -268,11 +269,13 @@ function updateProjectiles() {
     if (target) {
       defeatEnemy(target);
       bullet.remove();
+      bullet.active = false;
     } else if (bullet.distance > 620 || bullet.x < 0 || bullet.x > levelWidth) {
       bullet.remove();
+      bullet.active = false;
     }
   }
-  projectiles = projectiles.filter(bullet => !bullet.removed);
+  projectiles = projectiles.filter(bullet => bullet.active);
 }
 
 function createEnemy({ min, max, y, speed }) {
