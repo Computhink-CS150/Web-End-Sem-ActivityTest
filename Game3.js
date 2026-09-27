@@ -27,6 +27,8 @@ const enemyKinds = [
 
 let gameSurface;
 let player;
+let cameraX = 0;
+let cameraY = 0;
 let enemies = [];
 let bolts = [];
 let enemyBolts = [];
@@ -113,6 +115,7 @@ function resetGame() {
   player.visible = false;
   player.radius = 18;
   player.speed = 320;
+  updateCamera();
   updateHud();
 }
 
@@ -138,12 +141,19 @@ function handleKeyDown(event) {
   if (event.code === "Enter" && !running) startGame();
 }
 
+function updateCamera() {
+  cameraX = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
+  cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
+}
+
 function draw() {
   if (!player) return;
+  updateCamera();
   if (running) updateGame();
+  updateCamera();
   background("#171526");
   push();
-  translate(gameWidth / 2 - player.x, gameHeight / 2 - player.y);
+  translate(gameWidth / 2 - cameraX, gameHeight / 2 - cameraY);
   drawForest();
   drawGems();
   drawBolts();
@@ -160,8 +170,10 @@ function updateGame() {
   fireCooldown -= deltaTime / 1000;
   spawnCooldown -= deltaTime / 1000;
 
-  const steerX = mouseX - gameWidth / 2;
-  const steerY = mouseY - gameHeight / 2;
+  const playerScreenX = gameWidth / 2 + player.x - cameraX;
+  const playerScreenY = gameHeight / 2 + player.y - cameraY;
+  const steerX = mouseX - playerScreenX;
+  const steerY = mouseY - playerScreenY;
   const steerDistance = Math.hypot(steerX, steerY);
   if (steerDistance > 18) {
     const step = min(steerDistance, player.speed * deltaTime / 1000);
@@ -191,8 +203,8 @@ function drawForest() {
 
   noStroke();
   for (const star of stars) {
-    if (star.x < player.x - gameWidth / 2 || star.x > player.x + gameWidth / 2 ||
-        star.y < player.y - gameHeight / 2 || star.y > player.y + gameHeight / 2) continue;
+    if (star.x < cameraX - gameWidth / 2 || star.x > cameraX + gameWidth / 2 ||
+        star.y < cameraY - gameHeight / 2 || star.y > cameraY + gameHeight / 2) continue;
     const shimmer = 0.34 + 0.38 * sin(frameCount * 0.027 + star.phase);
     fill(218, 206, 255, shimmer * 210);
     circle(star.x, star.y, star.size);
@@ -200,8 +212,8 @@ function drawForest() {
 
   drawMoon();
   for (const tree of forestProps) {
-    if (tree.x < player.x - gameWidth / 2 - 60 || tree.x > player.x + gameWidth / 2 + 60 ||
-        tree.y < player.y - gameHeight / 2 - 110 || tree.y > player.y + gameHeight / 2 + 40) continue;
+    if (tree.x < cameraX - gameWidth / 2 - 60 || tree.x > cameraX + gameWidth / 2 + 60 ||
+        tree.y < cameraY - gameHeight / 2 - 110 || tree.y > cameraY + gameHeight / 2 + 40) continue;
     drawTree(tree);
   }
 
