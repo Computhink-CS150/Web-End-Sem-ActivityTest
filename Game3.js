@@ -28,10 +28,9 @@ const enemyKinds = [
 
 let gameSurface;
 let player;
-let pointerX = gameWidth / 2;
-let pointerY = gameHeight / 2;
 let cameraX = 0;
 let cameraY = 0;
+const pressedKeys = new Set();
 let enemies = [];
 let bolts = [];
 let enemyBolts = [];
@@ -59,6 +58,8 @@ function setup() {
   statusButton.addEventListener("click", startGame);
   document.getElementById("resetButton").addEventListener("click", showReady);
   window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keyup", handleKeyUp);
+  window.addEventListener("blur", () => pressedKeys.clear());
   highscoreDisplay.textContent = formatScore(highscore);
   createScenery();
   resetGame();
@@ -118,7 +119,6 @@ function resetGame() {
   player.visible = false;
   player.radius = 18;
   player.speed = 320;
-  resetPointerPosition();
   updateCamera();
   updateHud();
 }
@@ -134,8 +134,17 @@ function showReady() {
 }
 
 function handleKeyDown(event) {
-  if (event.code === "KeyR") showReady();
+  if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"].includes(event.code)) {
+    event.preventDefault();
+    pressedKeys.add(event.code);
+    return;
+  }
+  if (event.code === "KeyR" && !event.repeat) showReady();
   if (event.code === "Enter" && !running) startGame();
+}
+
+function handleKeyUp(event) {
+  pressedKeys.delete(event.code);
 }
 
 function updateCamera() {
@@ -148,21 +157,6 @@ function startGame() {
   running = true;
   gameOver = false;
   statusPanel.classList.add("hidden");
-}
-
-function mouseMoved() {
-  if (!running) return;
-  pointerX = constrain(mouseX, 0, gameWidth);
-  pointerY = constrain(mouseY, 0, gameHeight);
-}
-
-function mouseOut() {
-  resetPointerPosition();
-}
-
-function resetPointerPosition() {
-  pointerX = gameWidth / 2;
-  pointerY = gameHeight / 2;
 }
 
 function draw() {
@@ -189,14 +183,14 @@ function updateGame() {
   fireCooldown -= deltaTime / 1000;
   spawnCooldown -= deltaTime / 1000;
 
-  const steerX = (pointerX - gameWidth / 2) / (gameWidth / 2);
-  const steerY = (pointerY - gameHeight / 2) / (gameHeight / 2);
-  const stepX = Math.abs(steerX) > 0.06
-    ? Math.sign(steerX) * player.speed * min(1, Math.abs(steerX)) * deltaTime / 1000
-    : 0;
-  const stepY = Math.abs(steerY) > 0.06
-    ? Math.sign(steerY) * player.speed * min(1, Math.abs(steerY)) * deltaTime / 1000
-    : 0;
+  const steerX = Number(pressedKeys.has("KeyD") || pressedKeys.has("ArrowRight")) -
+    Number(pressedKeys.has("KeyA") || pressedKeys.has("ArrowLeft"));
+  const steerY = Number(pressedKeys.has("KeyS") || pressedKeys.has("ArrowDown")) -
+    Number(pressedKeys.has("KeyW") || pressedKeys.has("ArrowUp"));
+  const steerLength = Math.hypot(steerX, steerY);
+  const moveScale = steerLength > 0 ? 1 / steerLength : 0;
+  const stepX = steerX * moveScale * player.speed * deltaTime / 1000;
+  const stepY = steerY * moveScale * player.speed * deltaTime / 1000;
   player.x = constrain(player.x + stepX, gameWidth / 2, worldWidth - gameWidth / 2);
   player.y = constrain(player.y + stepY, gameHeight / 2, worldHeight - gameHeight / 2);
 
