@@ -157,6 +157,10 @@ function mouseMoved() {
 }
 
 function mouseOut() {
+  resetPointerPosition();
+}
+
+function resetPointerPosition() {
   pointerX = gameWidth / 2;
   pointerY = gameHeight / 2;
 }
