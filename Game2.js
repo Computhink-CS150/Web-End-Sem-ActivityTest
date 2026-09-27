@@ -300,7 +300,6 @@ function moveHazardsAndPickups() {
     hazard.sprite.x -= scrollSpeed;
     if (hazard.type === "missile") {
       hazard.sprite.x -= 2.8;
-      hazard.sprite.y += constrain(pilot.y - hazard.sprite.y, -2.5, 2.5);
     }
   }
   for (const item of [...energyCells, ...coins]) {
