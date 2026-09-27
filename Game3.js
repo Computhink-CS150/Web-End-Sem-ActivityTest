@@ -51,7 +51,7 @@ let highscore = loadHighscore();
 function setup() {
   gameSurface = new Canvas(gameWidth, gameHeight);
   gameSurface.id = "gameCanvas";
-  gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse away from the hero or use the left and right arrow keys to steer through the forest. The camera follows your hero while magic auto-fires.");
+  gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse away from the hero or use A and D or the left and right arrow keys to steer through the forest. The camera follows your hero while magic auto-fires.");
   gameSurface.addEventListener("pointermove", updatePointerPosition);
   arena.insertBefore(gameSurface, arena.firstChild);
   world.gravity.x = 0;
