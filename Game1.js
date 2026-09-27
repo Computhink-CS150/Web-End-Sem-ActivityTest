@@ -70,7 +70,6 @@ function setup() {
   gameSurface.setAttribute("aria-label", "Slingshot game canvas");
   gameArea.insertBefore(gameSurface, statusPanel);
   world.gravity.y = 0;
-  world.autoStep = true;
   createLevel();
   statusButton.addEventListener("click", handleStatusButton);
   document.getElementById("resetButton").addEventListener("click", resetGame);
@@ -212,6 +211,7 @@ function releaseBird() {
     return;
   }
   activeBird.collider = "dynamic";
+  activeBird.isSuperFast = true;
   activeBird.vel.x = pullX * 0.62;
   activeBird.vel.y = pullY * 0.62;
   activeBird.launched = true;
@@ -333,6 +333,10 @@ function finishGame(success) {
   gameOver = true;
   won = success;
   dragging = false;
+  if (success && activeBird) {
+    activeBird.remove();
+    activeBird = null;
+  }
   statusTitle.textContent = success ? "Outpost cleared." : "The siege is over.";
   statusMessage.textContent = success ? `${score} points secured.` : "The defenders held this round. Try a different angle.";
   statusButton.textContent = success && levelIndex < levels.length - 1 ? "Next level" : "Play again";
