@@ -14,35 +14,35 @@ const toast = document.getElementById("toast");
 const levels = [
   {
     name: "SUNSET OUTPOST",
-    pigs: [{ x: 880, y: 481 }, { x: 960, y: 481 }, { x: 920, y: 411 }],
+    pigs: [{ x: 910, y: 465 }, { x: 950, y: 465 }, { x: 930, y: 395 }, { x: 940, y: 325 }],
     blocks: [
-      { x: 840, y: 518, w: 20, h: 34, type: "wood" },
-      { x: 980, y: 518, w: 20, h: 34, type: "wood" },
-      { x: 830, y: 500, w: 180, h: 18, type: "stone" },
-      { x: 870, y: 448, w: 20, h: 34, type: "glass" },
-      { x: 950, y: 448, w: 20, h: 34, type: "glass" },
-      { x: 865, y: 430, w: 110, h: 18, type: "wood" },
-      { x: 890, y: 377, w: 20, h: 36, type: "wood" },
-      { x: 930, y: 377, w: 20, h: 36, type: "wood" },
-      { x: 880, y: 359, w: 80, h: 18, type: "stone" }
+      { x: 840, y: 500, w: 20, h: 52, type: "wood" },
+      { x: 980, y: 500, w: 20, h: 52, type: "wood" },
+      { x: 830, y: 482, w: 180, h: 18, type: "stone" },
+      { x: 870, y: 430, w: 20, h: 52, type: "glass" },
+      { x: 970, y: 430, w: 20, h: 52, type: "glass" },
+      { x: 865, y: 412, w: 130, h: 18, type: "wood" },
+      { x: 890, y: 360, w: 20, h: 52, type: "wood" },
+      { x: 970, y: 360, w: 20, h: 52, type: "wood" },
+      { x: 880, y: 342, w: 120, h: 18, type: "stone" }
     ]
   },
   {
     name: "CANYON CAMP",
-    pigs: [{ x: 820, y: 481 }, { x: 940, y: 481 }, { x: 1060, y: 481 }, { x: 940, y: 411 }],
+    pigs: [{ x: 840, y: 465 }, { x: 940, y: 465 }, { x: 1040, y: 465 }, { x: 930, y: 395 }, { x: 925, y: 255 }],
     blocks: [
-      { x: 770, y: 518, w: 20, h: 34, type: "wood" },
-      { x: 1090, y: 518, w: 20, h: 34, type: "wood" },
-      { x: 760, y: 500, w: 360, h: 18, type: "stone" },
-      { x: 800, y: 448, w: 20, h: 34, type: "glass" },
-      { x: 1060, y: 448, w: 20, h: 34, type: "glass" },
-      { x: 795, y: 430, w: 290, h: 18, type: "wood" },
-      { x: 890, y: 377, w: 20, h: 36, type: "wood" },
-      { x: 970, y: 377, w: 20, h: 36, type: "wood" },
-      { x: 880, y: 359, w: 120, h: 18, type: "stone" },
-      { x: 920, y: 307, w: 20, h: 34, type: "glass" },
-      { x: 960, y: 307, w: 20, h: 34, type: "glass" },
-      { x: 910, y: 289, w: 80, h: 18, type: "wood" }
+      { x: 770, y: 500, w: 20, h: 52, type: "wood" },
+      { x: 1090, y: 500, w: 20, h: 52, type: "wood" },
+      { x: 760, y: 482, w: 360, h: 18, type: "stone" },
+      { x: 800, y: 430, w: 20, h: 52, type: "glass" },
+      { x: 1060, y: 430, w: 20, h: 52, type: "glass" },
+      { x: 795, y: 412, w: 290, h: 18, type: "wood" },
+      { x: 840, y: 360, w: 20, h: 52, type: "wood" },
+      { x: 1020, y: 360, w: 20, h: 52, type: "wood" },
+      { x: 830, y: 342, w: 200, h: 18, type: "stone" },
+      { x: 880, y: 290, w: 20, h: 52, type: "glass" },
+      { x: 970, y: 290, w: 20, h: 52, type: "glass" },
+      { x: 860, y: 272, w: 150, h: 18, type: "wood" }
     ]
   }
 ];
@@ -69,7 +69,7 @@ function setup() {
   gameSurface.id = "gameCanvas";
   gameSurface.setAttribute("aria-label", "Slingshot game canvas");
   gameArea.insertBefore(gameSurface, statusPanel);
-  world.gravity.y = 0;
+  world.gravity.y = 240;
   createLevel();
   statusButton.addEventListener("click", handleStatusButton);
   document.getElementById("resetButton").addEventListener("click", resetGame);
@@ -93,7 +93,7 @@ function createLevel() {
   started = false;
   gameOver = false;
   won = false;
-  world.gravity.y = 0;
+  world.gravity.y = 240;
 
   groundSprite = new Sprite(gameWidth / 2, groundY + 13, gameWidth, 26);
   groundSprite.collider = "static";
@@ -108,20 +108,22 @@ function createLevel() {
     sprite.color = block.type === "wood" ? "#b8794c" : block.type === "glass" ? "#83c7bc" : "#768b8b";
     sprite.stroke = "#355451";
     sprite.strokeWeight = 2;
-    sprite.friction = 0.8;
-    sprite.bounciness = 0.04;
+    sprite.friction = 0.65;
+    sprite.bounciness = 0;
+    sprite.sleeping = true;
     blockTargets.push({ sprite, hp: block.type === "stone" ? 2 : 1, type: block.type, alive: true, index });
     sceneSprites.push(sprite);
   }
 
   for (const [index, pig] of level.pigs.entries()) {
-    const sprite = new Sprite(pig.x, pig.y, 38);
+    const sprite = new Sprite(pig.x, pig.y, 34);
     sprite.collider = "dynamic";
     sprite.color = "#76b983";
     sprite.stroke = "#356d59";
     sprite.strokeWeight = 2;
-    sprite.friction = 0.7;
-    sprite.bounciness = 0.08;
+    sprite.friction = 0.65;
+    sprite.bounciness = 0;
+    sprite.sleeping = true;
     sprite.rotationLock = true;
     pigTargets.push({ sprite, alive: true, index });
     sceneSprites.push(sprite);
@@ -136,7 +138,6 @@ function createLevel() {
 function startSiege() {
   statusPanel.classList.add("hidden");
   started = true;
-  world.gravity.y = 240;
   launchNextBird();
 }
 
