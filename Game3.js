@@ -1,7 +1,7 @@
 const gameWidth = 1200;
 const gameHeight = 654;
-const worldWidth = 4200;
-const worldHeight = 3000;
+const worldWidth = gameWidth;
+const worldHeight = gameHeight;
 const playerBoltRange = 450;
 const arena = document.getElementById("arena");
 const statusPanel = document.getElementById("statusPanel");
@@ -29,8 +29,6 @@ const enemyKinds = [
 let gameSurface;
 let player;
 const pressedKeys = new Set();
-let cameraX = 0;
-let cameraY = 0;
 let enemies = [];
 let bolts = [];
 let enemyBolts = [];
@@ -66,13 +64,13 @@ function setup() {
 }
 
 function createScenery() {
-  stars = Array.from({ length: 360 }, () => ({
+  stars = Array.from({ length: 140 }, () => ({
     x: random(worldWidth),
     y: random(worldHeight),
     size: random(0.5, 2.5),
     phase: random(TWO_PI)
   }));
-  forestProps = Array.from({ length: 600 }, () => ({
+  forestProps = Array.from({ length: 110 }, () => ({
     x: random(worldWidth),
     y: random(worldHeight),
     size: random(0.65, 1.45),
@@ -120,7 +118,6 @@ function resetGame() {
   player.visible = false;
   player.radius = 18;
   player.speed = 320;
-  updateCamera();
   updateHud();
 }
 
@@ -148,11 +145,6 @@ function handleKeyUp(event) {
   pressedKeys.delete(event.code);
 }
 
-function updateCamera() {
-  cameraX = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
-  cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
-}
-
 function startGame() {
   resetGame();
   running = true;
@@ -162,21 +154,15 @@ function startGame() {
 
 function draw() {
   if (!player) return;
-  updateCamera();
   if (running) updateGame();
-  updateCamera();
   camera.off();
   background("#171526");
-  push();
-  translate(gameWidth / 2 - cameraX, gameHeight / 2 - cameraY);
   drawForest();
   drawGems();
   drawBolts();
   drawEnemies();
   drawParticles();
   drawPlayer();
-  pop();
-  camera.off();
 }
 
 function updateGame() {
@@ -218,8 +204,6 @@ function drawForest() {
 
   noStroke();
   for (const star of stars) {
-    if (star.x < cameraX - gameWidth / 2 || star.x > cameraX + gameWidth / 2 ||
-        star.y < cameraY - gameHeight / 2 || star.y > cameraY + gameHeight / 2) continue;
     const shimmer = 0.34 + 0.38 * sin(frameCount * 0.027 + star.phase);
     fill(218, 206, 255, shimmer * 210);
     circle(star.x, star.y, star.size);
@@ -227,8 +211,6 @@ function drawForest() {
 
   drawMoon();
   for (const tree of forestProps) {
-    if (tree.x < cameraX - gameWidth / 2 - 60 || tree.x > cameraX + gameWidth / 2 + 60 ||
-        tree.y < cameraY - gameHeight / 2 - 110 || tree.y > cameraY + gameHeight / 2 + 40) continue;
     drawTree(tree);
   }
 
