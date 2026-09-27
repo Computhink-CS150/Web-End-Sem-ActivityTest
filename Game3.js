@@ -145,8 +145,8 @@ function handleKeyDown(event) {
 }
 
 function updateCamera() {
-  cameraX = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
-  cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
+  cameraX = player.x;
+  cameraY = player.y;
 }
 
 function updatePointerPosition(event) {
