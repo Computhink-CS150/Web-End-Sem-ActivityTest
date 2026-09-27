@@ -149,12 +149,14 @@ function draw() {
   updateCamera();
   if (running) updateGame();
   updateCamera();
+  camera.on();
   drawForest();
   drawGems();
   drawBolts();
   drawEnemies();
   drawParticles();
   drawPlayer();
+  camera.off();
 }
 
 function updateGame() {
