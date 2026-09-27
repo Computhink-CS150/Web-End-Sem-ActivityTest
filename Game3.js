@@ -197,19 +197,22 @@ function draw() {
     movePlayer(delta);
     spawnEnemies(now);
     updateEnemies(delta, now);
-    updateProjectiles(delta);
-    updateXpOrbs(delta);
-    updateParticles(delta);
-    updateHighscore();
-
-    if (now - lastShot >= 285) fireAtTarget(now);
-    if (health <= 0) endGame();
+    if (health <= 0) {
+      endGame();
+    } else {
+      updateProjectiles(delta);
+      updateXpOrbs(delta);
+      updateParticles(delta);
+      updateHighscore();
+      if (running && now - lastShot >= fireInterval()) fireAtTarget(now);
+    }
     if (now - lastHudUpdate > 120) updateHud();
   } else {
     updateParticles(delta);
   }
 
   drawSouls();
+  drawXpOrbs(now);
   drawProjectiles();
   drawEnemies(now);
   drawPlayer(now);
@@ -660,6 +663,9 @@ function updateHud() {
   enemyCountDisplay.textContent = `${enemies.length} ${enemies.length === 1 ? "WRAITH" : "WRAITHS"}`;
   healthBar.style.width = `${health}%`;
   healthText.textContent = String(Math.ceil(health));
+  playerLevelDisplay.textContent = String(playerLevel);
+  xpBar.style.width = `${xp / xpRequired * 100}%`;
+  xpCount.textContent = `${xp} / ${xpRequired} XP`;
   lastHudUpdate = millis();
 }
 
@@ -693,11 +699,18 @@ function showToast(message) {
 
 function endGame() {
   running = false;
+  choosingUpgrade = false;
+  pendingLevelUps = 0;
+  upgradeChoices.hidden = true;
+  upgradeChoices.replaceChildren();
   updateHighscore();
   updateHud();
+  statusKicker.innerHTML = "<span>✦</span> THE HOLLOW CLAIMS ANOTHER";
   statusTitle.innerHTML = "THE NIGHT<br><span>CLAIMS YOU</span>";
   statusMessage.textContent = `You held out for ${timeDisplay.textContent}. Score ${formatScore(score)}. Best ${formatScore(highscore)}.`;
   statusButton.innerHTML = "FACE THE HOLLOW AGAIN <span>↗</span>";
+  statusButton.hidden = false;
+  overlayHint.hidden = true;
   statusPanel.classList.remove("hidden");
 }
 
@@ -794,6 +807,24 @@ function drawProjectiles() {
     ellipse(0, 0, 10, 6);
     fill("#fff7dc");
     ellipse(1, 0, 4, 3);
+    pop();
+  }
+}
+
+function drawXpOrbs(now) {
+  for (const orb of xpOrbs) {
+    const x = orb.sprite.x;
+    const y = orb.sprite.y + Math.sin(now / 190 + orb.phase) * 3;
+    push();
+    translate(x, y);
+    rotate(Math.PI / 4);
+    noStroke();
+    fill(186, 153, 255, 50);
+    rect(-8, -8, 16, 16, 3);
+    fill("#c7a5ff");
+    rect(-5, -5, 10, 10, 2);
+    fill("#f3e7ff");
+    rect(-2, -2, 4, 4, 1);
     pop();
   }
 }
