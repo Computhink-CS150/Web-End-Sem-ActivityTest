@@ -40,6 +40,7 @@ body::before {
 .score-group > div { display: grid; gap: 4px; text-align: right; }
 .score-label { color: var(--muted); font-size: 8px; }
 .score-group strong { font: 500 20px "DM Mono", monospace; letter-spacing: .04em; }
+.score-group .coin-count { color: #ffd166; }
 .score-group .cell-score { color: var(--cyan); }
 .game-card { overflow: hidden; border: 1px solid var(--line); border-radius: 13px; background: #0c1225; box-shadow: 0 24px 90px rgba(0,0,0,.4), 0 0 55px rgba(92,75,204,.07); }
 .canvas-wrap { position: relative; overflow: hidden; aspect-ratio: 16 / 8.4; min-height: 390px; background: #10122d; }
@@ -79,8 +80,9 @@ button { font-family: inherit; }
   .flight-shell { width: calc(100% - 22px); padding-top: 17px; }
   .topbar { flex-wrap: wrap; gap: 13px; margin-bottom: 15px; }
   .mission { order: 3; width: 100%; }
-  .score-group { gap: 14px; }
-  .score-group strong { font-size: 16px; }
+  .score-group { gap: 11px; }
+  .score-group strong { font-size: 14px; }
+  .score-label { font-size: 7px; }
   .canvas-wrap { min-height: 330px; aspect-ratio: 1 / 1.08; }
   .controls { height: 60px; gap: 9px; padding: 0 10px; }
   .control-instruction { gap: 5px; font-size: 7px; letter-spacing: .08em; }
