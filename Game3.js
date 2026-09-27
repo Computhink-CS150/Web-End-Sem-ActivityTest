@@ -113,7 +113,6 @@ function resetGame() {
   player.visible = false;
   player.radius = 18;
   player.speed = 320;
-  updateCamera();
   updateHud();
 }
 
