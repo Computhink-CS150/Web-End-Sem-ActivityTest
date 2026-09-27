@@ -125,6 +125,7 @@ function resetGame() {
   player.speed = 320;
   destinationX = player.x;
   destinationY = player.y;
+  forgetPointerPosition();
   updateCamera();
   updateHud();
 }
@@ -139,8 +140,11 @@ function showReady() {
   statusPanel.classList.remove("hidden");
 }
 
-function startGame() {
+function startGame(event) {
   resetGame();
+  if (event && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
+    rememberPointerPosition(event);
+  }
   running = true;
   gameOver = false;
   statusPanel.classList.add("hidden");
