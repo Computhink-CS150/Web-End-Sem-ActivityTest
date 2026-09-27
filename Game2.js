@@ -119,7 +119,7 @@ function handleKeyDown(event) {
   if (event.code !== "Space" && event.code !== "ArrowUp") return;
   event.preventDefault();
   if (running) thrusting = true;
-  else if (document.activeElement !== statusButton) startGame();
+  else startGame();
 }
 
 function handleKeyUp(event) {
@@ -309,7 +309,7 @@ function checkCollisions() {
   for (const gate of obstacles) {
     const closestX = constrain(px, gate.x - gate.w / 2, gate.x + gate.w / 2);
     const closestY = constrain(py, gate.y - gate.h / 2, gate.y + gate.h / 2);
-    if (dist(px, py, closestX, closestY) < 18) {
+    if (dist(px, py, closestX, closestY) < 23) {
       endFlight();
       return;
     }
