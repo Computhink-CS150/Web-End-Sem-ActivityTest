@@ -140,8 +140,8 @@ function handleKeyDown(event) {
 }
 
 function updateCamera() {
-  camera.x = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
-  camera.y = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
+  camera.x = player.x;
+  camera.y = player.y;
 }
 
 function draw() {
