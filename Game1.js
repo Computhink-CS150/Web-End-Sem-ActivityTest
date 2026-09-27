@@ -2,9 +2,17 @@ const viewWidth = 960;
 const viewHeight = 540;
 const levelWidth = 2700;
 const floorY = 500;
-const playerMoveSpeed = 18;
+const playerMoveSpeed = 11;
+const jumpSpeed = 40;
+const enemyHeight = 30;
 const spawnPoint = { x: 82, y: 448 };
 const checkpointPoints = [1050, 1880];
+const enemySpots = [
+  { min: 285, max: 405, y: floorY - enemyHeight / 2, speed: 0.8 },
+  { min: 875, max: 980, y: floorY - enemyHeight / 2, speed: 0.9 },
+  { min: 1490, max: 1615, y: floorY - enemyHeight / 2, speed: 0.75 },
+  { min: 2040, max: 2160, y: floorY - enemyHeight / 2, speed: 0.85 }
+];
 const coinSpots = [
   [225, 435], [365, 435], [535, 350], [825, 320],
   [1050, 275], [1150, 275], [1435, 360], [1600, 292],
@@ -14,6 +22,7 @@ const coinSpots = [
 let player;
 let terrain;
 let coins;
+let enemies = [];
 let goal;
 let flag;
 let checkpointFlags = [];
@@ -26,6 +35,7 @@ let touchLeft = false;
 let touchRight = false;
 let touchJump = false;
 let jumpWasPressed = false;
+let invulnerableUntilFrame = 0;
 let toastTimer;
 
 const coinCount = document.getElementById("coinCount");
@@ -156,7 +166,7 @@ function resetPlayer() {
   player.strokeWeight = 3;
   player.rotationLock = true;
   player.bounciness = 0;
-  player.maxSpeed = 22;
+  player.maxSpeed = 14;
   player.drag = 0.88;
 }
 
@@ -171,6 +181,7 @@ function draw() {
     updatePlayer();
     player.collides(terrain);
     player.overlaps(coins, collectCoin);
+    updateEnemies();
     updateCheckpoints();
     if (player.overlaps(goal)) finishGame();
     if (player.y > viewHeight + 120) respawnPlayer();
@@ -193,8 +204,72 @@ function updatePlayer() {
   }
 
   const onGround = player.colliding(terrain);
-  if (jumpPressed && onGround) player.vel.y = -52;
+  if (jumpPressed && onGround) player.vel.y = -jumpSpeed;
   jumpWasPressed = wantsToJump;
+}
+
+function createEnemy({ min, max, y, speed }) {
+  const body = new Sprite(min, y, 36, enemyHeight);
+  body.collider = "none";
+  body.color = "#986044";
+  body.stroke = "#69412f";
+  body.strokeWeight = 3;
+
+  const eyes = [-1, 1].map(side => {
+    const eye = new Sprite(min + side * 6, y - 3, 9, 11);
+    eye.collider = "none";
+    eye.color = "#fff8e7";
+    eye.stroke = "#69412f";
+    eye.strokeWeight = 1;
+    const pupil = new Sprite(min + side * 6, y - 2, 3, 5);
+    pupil.collider = "none";
+    pupil.color = "#3c3935";
+    pupil.stroke = "#3c3935";
+    return { eye, pupil, side };
+  });
+
+  levelSprites.push(body, ...eyes.flatMap(({ eye, pupil }) => [eye, pupil]));
+  return { body, eyes, min, max, speed, direction: 1, alive: true };
+}
+
+function updateEnemies() {
+  for (const enemy of enemies) {
+    if (!enemy.alive) continue;
+
+    enemy.body.x += enemy.speed * enemy.direction;
+    if (enemy.body.x >= enemy.max || enemy.body.x <= enemy.min) {
+      enemy.direction *= -1;
+      enemy.body.x = constrain(enemy.body.x, enemy.min, enemy.max);
+    }
+
+    for (const { eye, pupil, side } of enemy.eyes) {
+      eye.x = enemy.body.x + side * 6;
+      pupil.x = eye.x + enemy.direction * 1.5;
+      eye.y = enemy.body.y - 3;
+      pupil.y = enemy.body.y - 2;
+    }
+
+    player.overlaps(enemy.body, () => handleEnemyContact(enemy));
+  }
+}
+
+function handleEnemyContact(enemy) {
+  if (!enemy.alive || frameCount < invulnerableUntilFrame) return;
+
+  if (player.vel.y > 0 && player.y < enemy.body.y - 5) {
+    enemy.alive = false;
+    enemy.body.remove();
+    enemy.eyes.forEach(({ eye, pupil }) => {
+      eye.remove();
+      pupil.remove();
+    });
+    player.vel.y = -jumpSpeed * 0.65;
+    showToast("NICE STOMP!");
+    return;
+  }
+
+  invulnerableUntilFrame = frameCount + 75;
+  respawnPlayer();
 }
 
 function updateCheckpoints() {
@@ -238,6 +313,7 @@ function restartGame() {
   checkpointIndex = -1;
   gameWon = false;
   jumpWasPressed = false;
+  invulnerableUntilFrame = 0;
   touchLeft = false;
   touchRight = false;
   touchJump = false;
