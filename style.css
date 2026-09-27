@@ -41,8 +41,8 @@ h1 { margin: 0; font-size: clamp(20px, 3vw, 27px); letter-spacing: -.05em; }
 .score-block strong { font: 500 22px "DM Mono", monospace; color: var(--accent); }
 .game-card { overflow: hidden; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); box-shadow: 0 24px 80px rgba(0,0,0,.24); }
 .canvas-wrap { position: relative; aspect-ratio: 16 / 8.7; min-height: 420px; background: #b8d8d0; }
-canvas { display: block; width: 100%; height: 100%; cursor: grab; touch-action: none; }
-canvas:active { cursor: grabbing; }
+.canvas-wrap canvas { display: block; position: absolute; inset: 0; width: 100%; height: 100%; cursor: grab; touch-action: none; }
+.canvas-wrap canvas:active { cursor: grabbing; }
 .controls { height: 74px; display: flex; align-items: center; padding: 0 22px; border-top: 1px solid var(--line); gap: 25px; }
 .birds { display: flex; gap: 7px; min-width: 128px; }
 .bird-dot { position: relative; width: 38px; height: 38px; display: grid; place-items: center; border: 1px solid rgba(231,166,91,.45); border-radius: 50%; background: rgba(231,166,91,.08); color: var(--accent); font-size: 19px; }
