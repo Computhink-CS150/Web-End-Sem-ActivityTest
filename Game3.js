@@ -28,10 +28,8 @@ const enemyKinds = [
 
 let gameSurface;
 let player;
-let destinationX = worldWidth / 2;
-let destinationY = worldHeight / 2;
-let lastPointerX = null;
-let lastPointerY = null;
+let pointerX = gameWidth / 2;
+let pointerY = gameHeight / 2;
 let cameraX = 0;
 let cameraY = 0;
 let enemies = [];
@@ -56,7 +54,7 @@ function setup() {
   gameSurface.id = "gameCanvas";
   gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse away from the hero to steer through the forest. The camera follows your hero while magic auto-fires.");
   gameSurface.addEventListener("pointermove", updatePointerPosition);
-  gameSurface.addEventListener("pointerleave", resetPointerInput);
+  gameSurface.addEventListener("pointerleave", resetPointerPosition);
   arena.insertBefore(gameSurface, arena.firstChild);
   world.gravity.x = 0;
   world.gravity.y = 0;
@@ -122,9 +120,7 @@ function resetGame() {
   player.visible = false;
   player.radius = 18;
   player.speed = 320;
-  destinationX = player.x;
-  destinationY = player.y;
-  resetPointerInput();
+  resetPointerPosition();
   updateCamera();
   updateHud();
 }
@@ -145,44 +141,26 @@ function handleKeyDown(event) {
 }
 
 function updateCamera() {
-  cameraX = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
-  cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
+  cameraX = player.x;
+  cameraY = player.y;
 }
 
-function startGame(event) {
+function startGame() {
   resetGame();
-  if (event?.detail > 0 && Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) {
-    rememberPointerPosition(event);
-  }
   running = true;
   gameOver = false;
   statusPanel.classList.add("hidden");
 }
 
 function updatePointerPosition(event) {
-  if (!running) return;
-
-  if (lastPointerX === null || lastPointerY === null) {
-    rememberPointerPosition(event);
-    return;
-  }
-
   const bounds = gameSurface.getBoundingClientRect();
-  const movementX = (event.clientX - lastPointerX) * gameWidth / bounds.width;
-  const movementY = (event.clientY - lastPointerY) * gameHeight / bounds.height;
-  destinationX = constrain(destinationX + movementX, player.radius, worldWidth - player.radius);
-  destinationY = constrain(destinationY + movementY, player.radius, worldHeight - player.radius);
-  rememberPointerPosition(event);
+  pointerX = constrain((event.clientX - bounds.left) * gameWidth / bounds.width, 0, gameWidth);
+  pointerY = constrain((event.clientY - bounds.top) * gameHeight / bounds.height, 0, gameHeight);
 }
 
-function rememberPointerPosition(event) {
-  lastPointerX = event.clientX;
-  lastPointerY = event.clientY;
-}
-
-function resetPointerInput() {
-  lastPointerX = null;
-  lastPointerY = null;
+function resetPointerPosition() {
+  pointerX = gameWidth / 2;
+  pointerY = gameHeight / 2;
 }
 
 function draw() {
@@ -209,16 +187,14 @@ function updateGame() {
   fireCooldown -= deltaTime / 1000;
   spawnCooldown -= deltaTime / 1000;
 
-  const steerX = destinationX - player.x;
-  const steerY = destinationY - player.y;
+  const steerX = (pointerX - gameWidth / 2) / (gameWidth / 2);
+  const steerY = (pointerY - gameHeight / 2) / (gameHeight / 2);
   const steerDistance = Math.hypot(steerX, steerY);
-  if (steerDistance > 3) {
-    const step = min(steerDistance, player.speed * deltaTime / 1000);
-    player.x = constrain(player.x + steerX / steerDistance * step, player.radius, worldWidth - player.radius);
-    player.y = constrain(player.y + steerY / steerDistance * step, player.radius, worldHeight - player.radius);
-  } else {
-    player.x = destinationX;
-    player.y = destinationY;
+  if (steerDistance > 0.06) {
+    const speed = player.speed * min(1, steerDistance);
+    const step = speed * deltaTime / 1000;
+    player.x = constrain(player.x + steerX / steerDistance * step, gameWidth / 2, worldWidth - gameWidth / 2);
+    player.y = constrain(player.y + steerY / steerDistance * step, gameHeight / 2, worldHeight - gameHeight / 2);
   }
 
   if (spawnCooldown <= 0) spawnEnemy();
