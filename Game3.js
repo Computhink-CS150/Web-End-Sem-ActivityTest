@@ -28,6 +28,7 @@ const enemyKinds = [
 
 let gameSurface;
 let player;
+const pressedKeys = new Set();
 let cameraX = 0;
 let cameraY = 0;
 let enemies = [];
@@ -56,7 +57,9 @@ function setup() {
   world.gravity.y = 0;
   statusButton.addEventListener("click", startGame);
   document.getElementById("resetButton").addEventListener("click", showReady);
-  window.addEventListener("keydown", handleKeyDown);
+  window.addEventListener("keydown", handleKeyDown, true);
+  window.addEventListener("keyup", handleKeyUp, true);
+  window.addEventListener("blur", () => pressedKeys.clear());
   highscoreDisplay.textContent = formatScore(highscore);
   createScenery();
   resetGame();
@@ -108,6 +111,7 @@ function resetGame() {
   score = 0;
   kills = 0;
   health = 100;
+  pressedKeys.clear();
   invulnerable = 0;
   fireCooldown = 0;
   spawnCooldown = 0.8;
@@ -133,15 +137,22 @@ function showReady() {
 function handleKeyDown(event) {
   if (["KeyW", "KeyA", "KeyS", "KeyD", "ArrowUp", "ArrowLeft", "ArrowDown", "ArrowRight"].includes(event.code)) {
     event.preventDefault();
+    if (running) pressedKeys.add(event.code);
     return;
   }
   if (event.code === "KeyR" && !event.repeat) showReady();
   if (event.code === "Enter" && !running) startGame();
 }
 
+function handleKeyUp(event) {
+  pressedKeys.delete(event.code);
+}
+
 function updateCamera() {
-  cameraX = player.x;
-  cameraY = player.y;
+  cameraX = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
+  cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
+  camera.x = cameraX;
+  camera.y = cameraY;
 }
 
 function startGame() {
@@ -156,16 +167,15 @@ function draw() {
   updateCamera();
   if (running) updateGame();
   updateCamera();
+  camera.off();
   background("#171526");
-  push();
-  translate(gameWidth / 2 - cameraX, gameHeight / 2 - cameraY);
+  camera.on();
   drawForest();
   drawGems();
   drawBolts();
   drawEnemies();
   drawParticles();
   drawPlayer();
-  pop();
   camera.off();
 }
 
@@ -175,16 +185,16 @@ function updateGame() {
   fireCooldown -= deltaTime / 1000;
   spawnCooldown -= deltaTime / 1000;
 
-  const steerX = Number(kb.pressing("d") || kb.pressing("right")) -
-    Number(kb.pressing("a") || kb.pressing("left"));
-  const steerY = Number(kb.pressing("s") || kb.pressing("down")) -
-    Number(kb.pressing("w") || kb.pressing("up"));
+  const steerX = Number(pressedKeys.has("KeyD") || pressedKeys.has("ArrowRight")) -
+    Number(pressedKeys.has("KeyA") || pressedKeys.has("ArrowLeft"));
+  const steerY = Number(pressedKeys.has("KeyS") || pressedKeys.has("ArrowDown")) -
+    Number(pressedKeys.has("KeyW") || pressedKeys.has("ArrowUp"));
   const steerLength = Math.hypot(steerX, steerY);
   const moveScale = steerLength > 0 ? 1 / steerLength : 0;
   const stepX = steerX * moveScale * player.speed * deltaTime / 1000;
   const stepY = steerY * moveScale * player.speed * deltaTime / 1000;
-  player.x = constrain(player.x + stepX, gameWidth / 2, worldWidth - gameWidth / 2);
-  player.y = constrain(player.y + stepY, gameHeight / 2, worldHeight - gameHeight / 2);
+  player.x = constrain(player.x + stepX, player.radius, worldWidth - player.radius);
+  player.y = constrain(player.y + stepY, player.radius, worldHeight - player.radius);
 
   if (spawnCooldown <= 0) spawnEnemy();
   updateEnemies();
