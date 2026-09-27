@@ -1,5 +1,7 @@
 const gameWidth = 1200;
 const gameHeight = 654;
+const worldWidth = 4200;
+const worldHeight = 3000;
 const arena = document.getElementById("arena");
 const statusPanel = document.getElementById("statusPanel");
 const statusTitle = document.getElementById("statusTitle");
@@ -15,12 +17,8 @@ const healthText = document.getElementById("healthText");
 const toast = document.getElementById("toast");
 const highscoreKey = "moonfall-highscore";
 
-const stars = Array.from({ length: 125 }, () => ({
-  x: Math.random() * gameWidth,
-  y: Math.random() * gameHeight,
-  size: Math.random() * 2 + 0.5,
-  phase: Math.random() * Math.PI * 2
-}));
+let stars = [];
+let forestProps = [];
 const enemyKinds = [
   { name: "wraith", health: 1, speed: 1.25, radius: 16, score: 100, color: "#b48aff" },
   { name: "fang", health: 2, speed: 0.91, radius: 22, score: 180, color: "#f280a8" },
@@ -56,11 +54,25 @@ function setup() {
   statusButton.addEventListener("click", startGame);
   document.getElementById("resetButton").addEventListener("click", showReady);
   window.addEventListener("keydown", handleKeyDown);
-  window.addEventListener("blur", () => {
-    if (running) player.target = { x: gameWidth / 2, y: gameHeight / 2 };
-  });
   highscoreDisplay.textContent = formatScore(highscore);
+  createScenery();
   resetGame();
+}
+
+function createScenery() {
+  stars = Array.from({ length: 360 }, () => ({
+    x: random(worldWidth),
+    y: random(worldHeight),
+    size: random(0.5, 2.5),
+    phase: random(TWO_PI)
+  }));
+  forestProps = Array.from({ length: 600 }, () => ({
+    x: random(worldWidth),
+    y: random(worldHeight),
+    size: random(0.65, 1.45),
+    shade: random(["#27253a", "#222234", "#1c202f", "#292438"]),
+    phase: random(TWO_PI)
+  }));
 }
 
 function loadHighscore() {
@@ -96,11 +108,12 @@ function resetGame() {
   invulnerable = 0;
   fireCooldown = 0;
   spawnCooldown = 0.8;
-  player = new Sprite(gameWidth / 2, gameHeight / 2, 30, 30);
+  player = new Sprite(worldWidth / 2, worldHeight / 2, 30, 30);
   player.collider = "none";
   player.visible = false;
-  player.target = { x: gameWidth / 2, y: gameHeight / 2 };
   player.radius = 18;
+  player.speed = 320;
+  updateCamera();
   updateHud();
 }
 
@@ -126,10 +139,17 @@ function handleKeyDown(event) {
   if (event.code === "Enter" && !running) startGame();
 }
 
+function updateCamera() {
+  camera.x = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
+  camera.y = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
+}
+
 function draw() {
-  drawForest();
   if (!player) return;
+  updateCamera();
   if (running) updateGame();
+  updateCamera();
+  drawForest();
   drawGems();
   drawBolts();
   drawEnemies();
