@@ -71,7 +71,8 @@ function buildCity() {
 }
 
 function resetFlight() {
-  [...obstacles, ...energyCells, ...coins].forEach(item => item.remove());
+  obstacles.forEach(hazard => hazard.sprite.remove());
+  [...energyCells, ...coins].forEach(item => item.remove());
   if (pilot) pilot.remove();
   obstacles = [];
   energyCells = [];
