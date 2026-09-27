@@ -151,8 +151,6 @@ function handleKeyUp(event) {
 function updateCamera() {
   cameraX = constrain(player.x, gameWidth / 2, worldWidth - gameWidth / 2);
   cameraY = constrain(player.y, gameHeight / 2, worldHeight - gameHeight / 2);
-  camera.x = cameraX;
-  camera.y = cameraY;
 }
 
 function startGame() {
@@ -167,15 +165,16 @@ function draw() {
   updateCamera();
   if (running) updateGame();
   updateCamera();
-  camera.off();
   background("#171526");
-  camera.on();
+  push();
+  translate(gameWidth / 2 - cameraX, gameHeight / 2 - cameraY);
   drawForest();
   drawGems();
   drawBolts();
   drawEnemies();
   drawParticles();
   drawPlayer();
+  pop();
   camera.off();
 }
 
