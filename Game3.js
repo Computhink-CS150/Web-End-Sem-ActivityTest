@@ -165,6 +165,7 @@ function draw() {
   updateCamera();
   if (running) updateGame();
   updateCamera();
+  camera.off();
   background("#171526");
   push();
   translate(gameWidth / 2 - cameraX, gameHeight / 2 - cameraY);
