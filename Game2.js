@@ -152,6 +152,7 @@ function draw() {
   pilot.velocityY = constrain(pilot.velocityY, -6.1, 5.4);
   pilot.y += pilot.velocityY;
   pilot.y = constrain(pilot.y, 30, gameHeight - 35);
+  if (pilot.y === 30 || pilot.y === gameHeight - 35) pilot.velocityY = 0;
 
   if (runFrames >= nextHazard) spawnHazard();
   moveHazardsAndPickups();
@@ -485,7 +486,6 @@ function checkCollisions() {
     return true;
   });
 
-  if (pilot.y <= 32 || pilot.y >= gameHeight - 36) endFlight();
 }
 
 function distanceToSegment(px, py, x1, y1, x2, y2) {
