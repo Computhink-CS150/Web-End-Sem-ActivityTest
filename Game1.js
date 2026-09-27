@@ -111,6 +111,8 @@ function buildLevel() {
     levelSprites.push(coin);
   }
 
+  enemies = enemySpots.map(createEnemy);
+
   goal = new Sprite(2595, 410, 54, 180);
   goal.collider = "static";
   goal.color = "#f5f0dc";
@@ -256,7 +258,7 @@ function updateEnemies() {
 function handleEnemyContact(enemy) {
   if (!enemy.alive || frameCount < invulnerableUntilFrame) return;
 
-  if (player.vel.y > 0 && player.y < enemy.body.y - 5) {
+  if (player.vel.y > 0 && player.y < enemy.body.y - 12) {
     enemy.alive = false;
     enemy.body.remove();
     enemy.eyes.forEach(({ eye, pupil }) => {
