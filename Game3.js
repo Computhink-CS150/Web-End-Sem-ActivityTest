@@ -47,7 +47,7 @@ let highscore = loadHighscore();
 function setup() {
   gameSurface = new Canvas(gameWidth, gameHeight);
   gameSurface.id = "gameCanvas";
-  gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse to evade monsters. Your character automatically aims and fires.");
+  gameSurface.setAttribute("aria-label", "Moonfall. Move your mouse away from the hero to steer through the forest. The camera follows your hero while magic auto-fires.");
   arena.insertBefore(gameSurface, arena.firstChild);
   world.gravity.x = 0;
   world.gravity.y = 0;
@@ -163,12 +163,16 @@ function updateGame() {
   fireCooldown -= deltaTime / 1000;
   spawnCooldown -= deltaTime / 1000;
 
-  const targetX = constrain(mouseX, 34, gameWidth - 34);
-  const targetY = constrain(mouseY, 53, gameHeight - 36);
-  player.target.x = targetX;
-  player.target.y = targetY;
-  player.x = lerp(player.x, targetX, min(1, deltaTime * 0.012));
-  player.y = lerp(player.y, targetY, min(1, deltaTime * 0.012));
+  const playerScreenX = player.x - camera.x + gameWidth / 2;
+  const playerScreenY = player.y - camera.y + gameHeight / 2;
+  const steerX = mouseX - playerScreenX;
+  const steerY = mouseY - playerScreenY;
+  const steerDistance = Math.hypot(steerX, steerY);
+  if (steerDistance > 18) {
+    const step = min(steerDistance, player.speed * deltaTime / 1000);
+    player.x = constrain(player.x + steerX / steerDistance * step, player.radius, worldWidth - player.radius);
+    player.y = constrain(player.y + steerY / steerDistance * step, player.radius, worldHeight - player.radius);
+  }
 
   if (spawnCooldown <= 0) spawnEnemy();
   updateEnemies();
@@ -183,67 +187,75 @@ function updateGame() {
 
 function drawForest() {
   const ctx = drawingContext;
-  const sky = ctx.createLinearGradient(0, 0, 0, gameHeight);
+  const sky = ctx.createLinearGradient(0, 0, 0, worldHeight);
   sky.addColorStop(0, "#171729");
   sky.addColorStop(0.58, "#242039");
   sky.addColorStop(1, "#171927");
   ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, gameWidth, gameHeight);
+  ctx.fillRect(0, 0, worldWidth, worldHeight);
 
   noStroke();
   for (const star of stars) {
+    if (star.x < camera.x - gameWidth / 2 || star.x > camera.x + gameWidth / 2 ||
+        star.y < camera.y - gameHeight / 2 || star.y > camera.y + gameHeight / 2) continue;
     const shimmer = 0.34 + 0.38 * sin(frameCount * 0.027 + star.phase);
     fill(218, 206, 255, shimmer * 210);
     circle(star.x, star.y, star.size);
   }
 
+  drawMoon();
+  for (const tree of forestProps) {
+    if (tree.x < camera.x - gameWidth / 2 - 60 || tree.x > camera.x + gameWidth / 2 + 60 ||
+        tree.y < camera.y - gameHeight / 2 - 110 || tree.y > camera.y + gameHeight / 2 + 40) continue;
+    drawTree(tree);
+  }
+
+  noStroke();
+  fill("#191a29");
+  rect(0, 0, worldWidth, 12);
+  rect(0, worldHeight - 12, worldWidth, 12);
+  rect(0, 0, 12, worldHeight);
+  rect(worldWidth - 12, 0, 12, worldHeight);
+}
+
+function drawMoon() {
+  const moonX = worldWidth * 0.72;
+  const moonY = worldHeight * 0.19;
   drawingContext.save();
   drawingContext.globalAlpha = 0.18;
   noStroke();
   fill("#a587db");
-  circle(921, 124, 216);
+  circle(moonX, moonY, 216);
   drawingContext.restore();
   noStroke();
   fill("#e7d9e8");
-  circle(921, 124, 84);
+  circle(moonX, moonY, 84);
   fill("#b6a0c8");
-  circle(946, 109, 77);
+  circle(moonX + 25, moonY - 15, 77);
   fill("#191729");
-  circle(966, 97, 71);
-
-  drawTreeLine(0.15, 242, "#27253a", 0.7);
-  drawTreeLine(0.28, 312, "#222234", 0.5);
-  drawTreeLine(0.48, 394, "#1c202f", 0.28);
-
-  noStroke();
-  fill("#191a29");
-  rect(0, gameHeight - 12, gameWidth, 12);
-  fill(190, 163, 225, 48);
-  rect(0, gameHeight - 12, gameWidth, 1);
+  circle(moonX + 45, moonY - 27, 71);
 }
 
-function drawTreeLine(parallax, baseY, shade, sway) {
-  const step = 90;
-  for (let x = -step; x <= gameWidth + step; x += step) {
-    const offset = sin(x * 0.013 + frameCount * 0.006) * 10 * sway;
-    const treeX = x + offset;
-    const topY = baseY - 82 - ((x * 17 % 53) + 53) % 53;
-    noStroke();
-    fill(shade);
-    triangle(treeX - 50, baseY + 30, treeX, topY - 43, treeX + 48, baseY + 30);
-    triangle(treeX - 40, baseY - 14, treeX, topY - 12, treeX + 41, baseY - 14);
-    rect(treeX - 4, baseY - 5, 8, gameHeight - baseY + 15);
-    fill(184, 160, 220, 24);
-    circle(treeX + 20, baseY - 30, 3);
-    circle(treeX - 24, baseY - 63, 2);
-  }
+function drawTree(tree) {
+  const size = tree.size;
+  const sway = sin(frameCount * 0.006 + tree.phase) * 3;
+  const topY = tree.y - 82 * size;
+  noStroke();
+  fill(tree.shade);
+  triangle(tree.x - 50 * size + sway, tree.y + 30 * size, tree.x + sway, topY - 43 * size, tree.x + 48 * size + sway, tree.y + 30 * size);
+  triangle(tree.x - 40 * size + sway, tree.y - 14 * size, tree.x + sway, topY - 12 * size, tree.x + 41 * size + sway, tree.y - 14 * size);
+  rect(tree.x - 4 * size + sway, tree.y - 5 * size, 8 * size, 36 * size);
+  fill(184, 160, 220, 24);
+  circle(tree.x + 20 * size + sway, tree.y - 30 * size, 3 * size);
+  circle(tree.x - 24 * size + sway, tree.y - 63 * size, 2 * size);
 }
 
 function spawnEnemy() {
   const wave = floor(elapsed / 22) + 1;
-  const edge = floor(random(4));
-  const x = edge === 0 ? -32 : edge === 1 ? gameWidth + 32 : random(gameWidth);
-  const y = edge === 2 ? -32 : edge === 3 ? gameHeight + 32 : random(58, gameHeight - 35);
+  const angle = random(TWO_PI);
+  const spawnDistance = Math.hypot(gameWidth / 2, gameHeight / 2) + random(95, 250);
+  const x = constrain(player.x + cos(angle) * spawnDistance, 32, worldWidth - 32);
+  const y = constrain(player.y + sin(angle) * spawnDistance, 32, worldHeight - 32);
   let kind = enemyKinds[0];
   const roll = random();
   if (wave >= 3 && roll < 0.13) kind = enemyKinds[2];
@@ -305,7 +317,7 @@ function updatePlayerBolts() {
     const bolt = bolts[i];
     bolt.x += bolt.vx;
     bolt.y += bolt.vy;
-    if (bolt.x < -20 || bolt.x > gameWidth + 20 || bolt.y < -20 || bolt.y > gameHeight + 20) {
+    if (bolt.x < -20 || bolt.x > worldWidth + 20 || bolt.y < -20 || bolt.y > worldHeight + 20) {
       bolts.splice(i, 1);
       continue;
     }
@@ -342,7 +354,7 @@ function updateEnemyBolts() {
     const bolt = enemyBolts[i];
     bolt.x += bolt.vx;
     bolt.y += bolt.vy;
-    if (bolt.x < -20 || bolt.x > gameWidth + 20 || bolt.y < -20 || bolt.y > gameHeight + 20) {
+    if (bolt.x < -20 || bolt.x > worldWidth + 20 || bolt.y < -20 || bolt.y > worldHeight + 20) {
       enemyBolts.splice(i, 1);
       continue;
     }
@@ -382,8 +394,8 @@ function checkPlayerCollisions() {
     if (dist(player.x, player.y, enemy.x, enemy.y) < player.radius + enemy.radius - 4) {
       takeDamage(enemy.type === "brute" ? 22 : 16);
       const angle = atan2(player.y - enemy.y, player.x - enemy.x);
-      player.x = constrain(player.x + cos(angle) * 23, 25, gameWidth - 25);
-      player.y = constrain(player.y + sin(angle) * 23, 50, gameHeight - 25);
+      player.x = constrain(player.x + cos(angle) * 23, player.radius, worldWidth - player.radius);
+      player.y = constrain(player.y + sin(angle) * 23, player.radius, worldHeight - player.radius);
       break;
     }
   }
