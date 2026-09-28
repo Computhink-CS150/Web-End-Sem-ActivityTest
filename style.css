@@ -334,11 +334,20 @@ kbd {
 .footer {
   display: flex;
   justify-content: space-between;
+  gap: 12px;
   padding: 15px 4px 0;
   color: #8ba4a0;
   font-size: 8px;
 }
 .footer-flower { padding-right: 5px; color: #e3ae52; font-size: 12px; }
+.game-nav {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px 12px;
+}
+.game-nav a { color: #648589; text-decoration: none; }
+.game-nav a:hover { color: var(--teal); text-decoration: underline; }
 
 @media (max-width: 700px) {
   .game-shell { width: calc(100% - 24px); padding-top: 20px; }
@@ -356,7 +365,8 @@ kbd {
   .controls-hint kbd { padding: 3px; font-size: 7px; }
   .checkpoint-status { font-size: 7px; }
   .reset-button { padding: 7px 5px; font-size: 8px; }
-  .footer { font-size: 7px; }
+  .footer { flex-wrap: wrap; font-size: 7px; }
+  .game-nav { justify-content: flex-start; }
 }
 
 @media (max-width: 520px) {
