@@ -26,7 +26,8 @@ const upgradeDefinitions = [
   { id: "piercing", name: "Wraithpiercer", icon: "➶", max: Infinity },
   { id: "soulburst", name: "Soulburst", icon: "✺", max: 1 },
   { id: "magnet", name: "Grave Magnet", icon: "♧", max: Infinity },
-  { id: "arcaneMight", name: "Eldritch Might", icon: "✧", max: Infinity }
+  { id: "arcaneMight", name: "Eldritch Might", icon: "✧", max: Infinity },
+  { id: "soulHarvest", name: "Soul Harvest", icon: "✦", max: 5 }
 ];
 
 const stars = Array.from({ length: 105 }, () => ({
@@ -544,7 +545,8 @@ function updateXpOrbs(delta) {
 }
 
 function gainXp(amount) {
-  xp += amount;
+  const xpGained = amount * Math.pow(2, upgrades.soulHarvest);
+  xp += xpGained;
   while (xp >= xpRequired) {
     xp -= xpRequired;
     playerLevel++;
@@ -604,7 +606,8 @@ function describeUpgrade(upgrade) {
     piercing: `Bolts pierce ${level + 1} additional wraith${level === 0 ? "" : "s"}. ${upgradeRank(upgrade, level)}`,
     soulburst: "Bolts burst on impact, damaging nearby wraiths.",
     magnet: `Collect souls from much farther away. ${upgradeRank(upgrade, level)}`,
-    arcaneMight: `Bolts deal ${level + 2} damage. ${upgradeRank(upgrade, level)}`
+    arcaneMight: `Bolts deal ${level + 2} damage. ${upgradeRank(upgrade, level)}`,
+    soulHarvest: `Gain ${2 ** (level + 1)}× XP from every soul. ${upgradeRank(upgrade, level)}`
   };
   return descriptions[upgrade.id];
 }
